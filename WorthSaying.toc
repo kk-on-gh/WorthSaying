@@ -1,0 +1,30 @@
+## Interface: 16001, 120105
+## Title: Worth Saying
+## Notes: Write speeches, tours and RP scripts, then deliver them to chat line by line, by hand or on a timer.
+## Author: Kyle
+## Version: 0.1.0
+## SavedVariables: WorthSayingDB
+## IconTexture: Interface\AddOns\WorthSaying\Media\MinimapIcon.png
+## X-Category: Roleplay
+## X-License: GPL-3.0
+
+Core/Namespace.lua
+Core/Changelog.lua
+Core/Database.lua
+Core/Parser.lua
+Core/Serializer.lua
+Core/Playback.lua
+Core/Triggers.lua
+Core/Events.lua
+Core/Slash.lua
+Core/Minimap.lua
+
+UI/Widgets.lua
+UI/MainWindow.lua
+UI/SpeechList.lua
+UI/Editor.lua
+UI/Presenter.lua
+UI/ImportExport.lua
+UI/Options.lua
+UI/Guide.lua
+UI/About.lua

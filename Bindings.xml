@@ -1,0 +1,17 @@
+<Bindings>
+	<Binding name="WS_NEXT" category="BINDING_HEADER_WORTHSAYING" description="Send the next line">
+		WorthSaying.Next()
+	</Binding>
+	<Binding name="WS_BACK" category="BINDING_HEADER_WORTHSAYING" description="Step back one line">
+		WorthSaying.Back()
+	</Binding>
+	<Binding name="WS_PLAYPAUSE" category="BINDING_HEADER_WORTHSAYING" description="Start or pause auto-play">
+		WorthSaying.TogglePlay()
+	</Binding>
+	<Binding name="WS_PRESENTER" category="BINDING_HEADER_WORTHSAYING" description="Show or hide the presenter">
+		WorthSaying.TogglePresenter()
+	</Binding>
+	<Binding name="WS_WINDOW" category="BINDING_HEADER_WORTHSAYING" description="Show or hide the main window">
+		WorthSaying.ToggleMainWindow()
+	</Binding>
+</Bindings>

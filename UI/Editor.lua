@@ -55,7 +55,7 @@ local function describeEntry(entry)
 	elseif entry.kind == "channel" then
 		local label = ns.ChatLabel(entry.chatType, entry.channelNum)
 		if entry.target then
-			label = label .. " to " .. ns.PreviewTokens(entry.target)
+			label = label .. " to " .. ns.PreviewTokens(entry.target, ns.ChatColor("CONTROL"))
 		end
 		return ns.ColorText("(following lines go to " .. label .. ")", ns.ChatColor("CONTROL"))
 	elseif entry.kind == "error" then
@@ -65,13 +65,13 @@ local function describeEntry(entry)
 		for _, emote in ipairs(entry.emotes or {}) do
 			extras = extras .. " + " .. emote.command
 		end
-		return ns.ColorText("[Emote] " .. entry.command .. (entry.target and (" " .. ns.PreviewTokens(entry.target)) or "") .. extras, ns.ChatColor("ACTION"))
+		return ns.ColorText("[Emote] " .. entry.command .. (entry.target and (" " .. ns.PreviewTokens(entry.target, ns.ChatColor("ACTION"))) or "") .. extras, ns.ChatColor("ACTION"))
 	end
 	local label = ns.ChatLabel(entry.chatType, entry.channelNum)
 	if entry.chatType == "WHISPER" then
-		label = label .. " to " .. ns.PreviewTokens(entry.target)
+		label = label .. " to " .. ns.PreviewTokens(entry.target, ns.ChatColor(entry.chatType))
 	end
-	local text = ns.ColorText("[" .. label .. "] " .. ns.PreviewTokens(entry.text), ns.ChatColor(entry.chatType))
+	local text = ns.ColorText("[" .. label .. "] " .. ns.PreviewTokens(entry.text, ns.ChatColor(entry.chatType)), ns.ChatColor(entry.chatType))
 	if entry.emotes then
 		local commands = {}
 		for _, emote in ipairs(entry.emotes) do

@@ -289,6 +289,59 @@ local function groupLeaderName()
 	end
 end
 
+local ROLE_IDS = { tank = "TANK", healer = "HEALER", dps = "DAMAGER" }
+local MAX_LISTED = 5
+
+local function namesWithRole(role)
+	local units = { "player" }
+	if IsInRaid() then
+		units = {}
+		for i = 1, GetNumGroupMembers() do
+			units[i] = "raid" .. i
+		end
+	elseif IsInGroup() then
+		for i = 1, GetNumSubgroupMembers() do
+			units[#units + 1] = "party" .. i
+		end
+	end
+	local names = {}
+	for _, unit in ipairs(units) do
+		local ok, assigned = pcall(UnitGroupRolesAssigned, unit)
+		if ok and not (issecretvalue and issecretvalue(assigned)) and assigned == ROLE_IDS[role] then
+			names[#names + 1] = unitShortName(unit)
+		end
+	end
+	return names
+end
+
+local function roleFallback(role)
+	return ns.GetSettings().playback.roleFallbacks[role]
+end
+
+local function roleList(role)
+	local names = namesWithRole(role)
+	if #names == 0 or #names > MAX_LISTED then
+		return roleFallback(role)
+	elseif #names == 1 then
+		return names[1]
+	end
+	return table.concat(names, ", ", 1, #names - 1) .. " and " .. names[#names]
+end
+
+-- one pick per role per line, so a line naming %rhealer twice names the same healer
+local function roleRandom(role, line)
+	local key = "r" .. role
+	if line and line[key] then
+		return line[key]
+	end
+	local names = namesWithRole(role)
+	local pick = #names > 0 and names[math.random(#names)] or roleFallback(role)
+	if line then
+		line[key] = pick
+	end
+	return pick
+end
+
 ns.TOKENS = {
 	{ key = "t", preview = "<target>", description = "Your target's first name (an NPC's whole name)",
 		resolve = function() return unitName("target", false) or ns.GetSettings().playback.targetFallback end },
@@ -322,6 +375,18 @@ ns.TOKENS = {
 		resolve = function() return GetGuildInfo("player") end },
 	{ key = "l", preview = "<group leader>", description = "Your group leader's name (or yours, solo)",
 		resolve = groupLeaderName },
+	{ key = "tank", preview = "<tank>", description = "Your group's tank (or tanks, up to five)",
+		resolve = function() return roleList("tank") end },
+	{ key = "healer", preview = "<healer>", description = "Your group's healer (or healers, up to five)",
+		resolve = function() return roleList("healer") end },
+	{ key = "dps", preview = "<DPS>", description = "Your group's DPS, like \"Ann, Bob and Cid\" (up to five)",
+		resolve = function() return roleList("dps") end },
+	{ key = "rtank", preview = "<random tank>", description = "One of your group's tanks, picked at random",
+		resolve = function(line) return roleRandom("tank", line) end },
+	{ key = "rhealer", preview = "<random healer>", description = "One of your group's healers, picked at random",
+		resolve = function(line) return roleRandom("healer", line) end },
+	{ key = "rdps", preview = "<random DPS>", description = "One of your group's DPS, picked at random",
+		resolve = function(line) return roleRandom("dps", line) end },
 	{ key = "time", preview = "<time>", description = "Server time, like 18:30",
 		resolve = function()
 			local h, m = GetGameTime()
@@ -340,12 +405,13 @@ function ns.ExpandTokens(text)
 		return text
 	end
 	text = text:gsub("%%%%", "\001")
+	local line = {}
 	text = text:gsub("%%(%a+)", function(word)
 		local token = tokenByKey[word:lower()]
 		if not token then
 			return nil
 		end
-		local ok, value = pcall(token.resolve)
+		local ok, value = pcall(token.resolve, line)
 		if ok and value and value ~= "" then
 			return (tostring(value):gsub("%%", "%%%%"))
 		end
@@ -354,15 +420,16 @@ function ns.ExpandTokens(text)
 	return (text:gsub("\001", "%%"))
 end
 
--- like ExpandTokens, but with readable placeholders such as <target>
-function ns.PreviewTokens(text)
+-- like ExpandTokens, but with highlighted placeholders such as <target>; r, g, b is the surrounding color
+function ns.PreviewTokens(text, r, g, b)
 	if not text or not text:find("%", 1, true) then
 		return text
 	end
+	local resume = "|c" .. ns.ToHex(r, g, b)
 	text = text:gsub("%%%%", "\001")
 	text = text:gsub("%%(%a+)", function(word)
 		local token = tokenByKey[word:lower()]
-		return token and token.preview or nil
+		return token and ("|cffffd100" .. token.preview .. resume) or nil
 	end)
 	return (text:gsub("\001", "%%"))
 end

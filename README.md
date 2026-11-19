@@ -51,7 +51,7 @@ GPL-3.0. See [LICENSE](LICENSE).
 * **Emotes:** any emote on its own line (`/bow`, `/wave %t`), or in curly braces to go with a line.
 * **Timing:** `/wait 2` for a longer (or shorter) beat, and `/pause` to stop and wait for you, with an optional reminder like `/pause wait for the stragglers`.
 * **Structure:** `## Headings` split a speech into sections you can jump between, and `// notes` are just for you.
-* **Tokens:** `%t` (target), `%tt` (target's full name), `%p` (you), `%z` (zone), `%sz` (subzone), `%c`, `%r`, `%lvl`, `%g`, `%l` (group leader), `%time`, and a few more, all filled in at the moment the line is sent.
+* **Tokens:** `%t` (target), `%tt` (target's full name), `%p` (you), `%z` (zone), `%sz` (subzone), `%c`, `%r`, `%lvl`, `%g`, `%l` (group leader), `%tank`, `%healer` and `%dps` (by group role), `%rhealer` and friends (a random one), `%time`, and a few more, all filled in at the moment the line is sent.
 
 **The editor**
 
@@ -90,7 +90,7 @@ GPL-3.0. See [LICENSE](LICENSE).
 ![image](https://cdn.jsdelivr.net/gh/kk-on-gh/WorthSaying-Media@master/Screenshots/speeches.png)
 
 * Keep as many speeches as you like, shared across all your characters.
-* Tag them, star your favorites, and search through names, tags, and the scripts themselves.
+* Tag them, star your favorites, and search through names, tags, trigger places, and the scripts themselves.
 * Filter by tag, type, trigger, or favorites, and sort by name, line count, how often you've used them, or when you last did.
 * Double-click to present, right-click to duplicate, export, or delete.
 

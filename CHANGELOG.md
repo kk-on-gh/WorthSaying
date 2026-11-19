@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.1.1] - 2026-11-18
+
+### Added
+- Pick which chat tab gets [Rehearse] lines and Worth Saying's own messages (Options > Playback). Before, they always went to the main chat window, and no chat filter could move them.
+- Role tokens: %tank, %healer and %dps name the players in that role, and %rtank, %rhealer and %rdps name one at random. With nobody in a role they say "tank", "healer" or "DPS", which you can change in Options > Playback. The sample quip uses a few.
+
+### Changed
+- Searching the speech list also matches trigger places, so "chasm" finds speeches set to pop up in Ragefire Chasm.
+- Token placeholders in the Preview, like target and zone, are highlighted in gold so they stand out from the rest of the line.
+- Refreshed the addon icons.
+- The minimap button now shows its full name in minimap button collectors, such as EllesmereUI's flyout. If you had ungrouped it in EllesmereUI, ungroup it once more, since EllesmereUI remembers ungrouped buttons by their old name.
+
 ## [0.1.0] - 2026-11-11
 
 First version of Worth Saying! Write speeches, tours, RP scripts and one-liners ahead of time, then deliver them to chat one line at a time, by hand or on a timer.

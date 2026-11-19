@@ -91,6 +91,17 @@ local OLD_SAMPLE_QUIPS = {
 		"Everyone ready? Doesn't matter, I'm going!",
 		"Pull now, think later.",
 	}, "\n")] = true,
+	[table.concat({
+		"// A quip sends one random line each time. Try a macro with: /ws quip Sample Quip",
+		"// {roar} and friends do the emote along with the line.",
+		"Here we go. Stay behind me and try not to stand in anything glowing.",
+		"/y {roar} For glory! Or at least for loot!",
+		"{flex} I have a plan. It's mostly running at them.",
+		"{nervous} Healer, I apologize in advance.",
+		"/e cracks their knuckles and charges in.",
+		"{cheer} Everyone ready? Doesn't matter, I'm going!",
+		"Pull now, think later.",
+	}, "\n")] = true,
 }
 
 local SAMPLE_TOUR = table.concat({
@@ -121,12 +132,16 @@ local SAMPLE_TOUR = table.concat({
 local SAMPLE_QUIP = table.concat({
 	"// A quip sends one random line each time. Try a macro with: /ws quip Sample Quip",
 	"// {roar} and friends do the emote along with the line.",
+	"// %tank, %healer and %dps name your group by role. %rhealer and friends pick one at random.",
 	"Here we go. Stay behind me and try not to stand in anything glowing.",
 	"/y {roar} For glory! Or at least for loot!",
 	"{flex} I have a plan. It's mostly running at them.",
-	"{nervous} Healer, I apologize in advance.",
+	"{nervous} %rhealer, I apologize in advance.",
+	"%tank, you go first. I'll be right behind you. Way behind you.",
+	"%dps, save the big cooldowns for the boss. Or don't, I'm not your mom.",
 	"/e cracks their knuckles and charges in.",
 	"{cheer} Everyone ready? Doesn't matter, I'm going!",
+	"{point} %rdps, you're on interrupts. Congratulations.",
 	"Pull now, think later.",
 }, "\n")
 

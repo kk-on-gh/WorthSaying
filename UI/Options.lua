@@ -192,8 +192,30 @@ local function buildKeybindBox(parent, y)
 	return y - height - 6
 end
 
+local outputDropdown
+
+local function outputTabOptions()
+	local saved = ns.GetSettings().outputTab
+	local mainName = "Main window"
+	local options = {}
+	local found = not saved
+	for _, tab in ipairs(ns.GetChatTabs()) do
+		if tab.frame == DEFAULT_CHAT_FRAME then
+			mainName = "Main window (" .. tab.name .. ")"
+		else
+			options[#options + 1] = { value = tab.name, text = tab.name }
+		end
+		found = found or tab.name == saved
+	end
+	table.insert(options, 1, { value = "", text = mainName })
+	if not found then
+		options[#options + 1] = { value = saved, text = saved .. " (closed)" }
+	end
+	return options
+end
+
 local function buildPlaybackBox(parent, y)
-	local height = 322
+	local height = 376
 	local box = createSectionBox(parent, y, height, "Playback")
 
 	local delay = buildSlider(box, {
@@ -260,7 +282,7 @@ local function buildPlaybackBox(parent, y)
 		ns.GetSettings().presenter.rehearseEmotes = checked
 	end, "Rehearse normally keeps everything to yourself. With this on, emotes like /cheer and {bow} are really performed, so you can check how they look. Players near you will see them. Text lines still only print to you.")
 
-	local fallbackLabel = ns.CreateLabel(box, "%t with no target becomes", "GameFontHighlightSmall")
+	local fallbackLabel = ns.CreateLabel(box, "%t or %f with no one there becomes", "GameFontHighlightSmall")
 	fallbackLabel:SetPoint("TOPLEFT", 14, -298)
 	local fallbackBox = ns.CreateSmallEditBox(box, 110, 18)
 	fallbackBox:SetJustifyH("LEFT")
@@ -274,6 +296,36 @@ local function buildPlaybackBox(parent, y)
 	fallbackBox:SetScript("OnEnterPressed", applyFallback)
 	fallbackBox:SetScript("OnEditFocusLost", applyFallback)
 	ns.AttachTooltip(fallbackBox, "Used for %t, %tt, %f and %ff when you have no target or focus. Leave blank to drop the word.")
+
+	local roleLabel = ns.CreateLabel(box, "With nobody in a role, role tokens say", "GameFontHighlightSmall")
+	roleLabel:SetPoint("TOPLEFT", 14, -324)
+	local anchor = roleLabel
+	for _, role in ipairs({ "tank", "healer", "dps" }) do
+		local roleBox = ns.CreateSmallEditBox(box, 70, 18)
+		roleBox:SetJustifyH("LEFT")
+		roleBox:SetTextInsets(4, 4, 0, 0)
+		roleBox:SetPoint("LEFT", anchor, "RIGHT", 6, 0)
+		roleBox:SetText(playback().roleFallbacks[role] or "")
+		local function applyRole(self)
+			playback().roleFallbacks[role] = ns.Trim(self:GetText())
+			self:ClearFocus()
+		end
+		roleBox:SetScript("OnEnterPressed", applyRole)
+		roleBox:SetScript("OnEditFocusLost", applyRole)
+		ns.AttachTooltip(roleBox, "Used for %" .. role .. " and %r" .. role .. " when nobody in your group has that role. Leave blank to drop the word.")
+		anchor = roleBox
+	end
+
+	local outputLabel = ns.CreateLabel(box, "Rehearse lines and addon messages go to", "GameFontHighlightSmall")
+	outputLabel:SetPoint("TOPLEFT", 14, -350)
+	outputDropdown = ns.CreateDropdown(box, outputTabOptions,
+		function(value) return (ns.GetSettings().outputTab or "") == value end,
+		function(value)
+			ns.GetSettings().outputTab = value ~= "" and value or nil
+			ns.Print("messages will show up here.")
+		end, 180, 20)
+	outputDropdown:SetPoint("LEFT", outputLabel, "RIGHT", 8, 0)
+	ns.AttachHookTooltip(outputDropdown, "Which chat tab gets [Rehearse] lines and Worth Saying's own messages. These aren't a chat type, so the tab's chat filters don't affect them. If the tab is closed or renamed, they go to the main window.")
 
 	return y - height - 6
 end
@@ -451,6 +503,9 @@ function ns.BuildOptionsPanel(parent)
 	parent:SetScript("OnShow", function()
 		for _, button in ipairs(keybindButtons) do
 			button.Refresh()
+		end
+		if outputDropdown then
+			outputDropdown:Refresh()
 		end
 	end)
 end

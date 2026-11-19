@@ -1,11 +1,15 @@
 local ns = WorthSaying
 
+-- options may be a function, rebuilt each time the menu opens
 function ns.CreateDropdown(parent, options, isSelected, onChange, width, height)
+	local function getOptions()
+		return type(options) == "function" and options() or options
+	end
 	local ok, dropdown = pcall(CreateFrame, "DropdownButton", nil, parent, "WowStyle1DropdownTemplate")
 
 	if ok and dropdown and dropdown.SetupMenu then
 		dropdown:SetupMenu(function(_, rootDescription)
-			for _, option in ipairs(options) do
+			for _, option in ipairs(getOptions()) do
 				rootDescription:CreateRadio(option.text, function() return isSelected(option.value) end, function()
 					dropdown:SetText(option.text)
 					onChange(option.value, option.text)
@@ -15,21 +19,22 @@ function ns.CreateDropdown(parent, options, isSelected, onChange, width, height)
 	else
 		dropdown = CreateFrame("Button", nil, parent, "UIPanelButtonTemplate")
 		dropdown:SetScript("OnClick", function(self)
+			local opts = getOptions()
 			local currentIndex = 1
-			for i, option in ipairs(options) do
+			for i, option in ipairs(opts) do
 				if isSelected(option.value) then
 					currentIndex = i
 					break
 				end
 			end
-			local option = options[(currentIndex % #options) + 1]
+			local option = opts[(currentIndex % #opts) + 1]
 			self:SetText(option.text)
 			onChange(option.value, option.text)
 		end)
 	end
 
 	function dropdown:Refresh()
-		for _, option in ipairs(options) do
+		for _, option in ipairs(getOptions()) do
 			if isSelected(option.value) then
 				self:SetText(option.text)
 				return

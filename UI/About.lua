@@ -79,7 +79,7 @@ function layout()
 		header:SetPoint("TOPLEFT", 0, y)
 		header:SetPoint("RIGHT", scrollChild, "RIGHT", -4, 0)
 		local tag = entry.shipped and "" or "  |cffff6060(unreleased)|r"
-		header.text:SetText((expanded[index] and "[-] " or "[+] ") .. "v" .. entry.version .. " - " .. entry.date .. tag)
+		header.text:SetText((expanded[index] and "[-] " or "[+] ") .. "v" .. entry.version .. ((entry.date or "") ~= "" and (" - " .. entry.date) or "") .. tag)
 		header:SetScript("OnClick", function()
 			expanded[index] = not expanded[index]
 			layout()

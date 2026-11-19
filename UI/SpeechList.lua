@@ -65,7 +65,12 @@ local function matchesSearch(speech)
 	if search == "" then
 		return true
 	end
-	local haystack = (speech.name .. "\n" .. table.concat(speech.tags, ",") .. "\n" .. speech.text):lower()
+	local triggerNames = {}
+	for _, trigger in ipairs(speech.triggers) do
+		triggerNames[#triggerNames + 1] = trigger.name or ""
+	end
+	local haystack = (speech.name .. "\n" .. table.concat(speech.tags, ",") .. "\n" .. table.concat(triggerNames, "\n")
+		.. "\n" .. speech.text):lower()
 	for rawTerm in search:gmatch("[^,]+") do
 		local term = ns.Trim(rawTerm)
 		if term ~= "" and haystack:find(term, 1, true) then

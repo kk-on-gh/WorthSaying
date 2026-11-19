@@ -38,6 +38,7 @@ ns.Defaults = {
 			splitLongLines = true,
 			emotesFollowLine = true,
 			targetFallback = "friend",
+			roleFallbacks = { tank = "tank", healer = "healer", dps = "DPS" },
 			waitSound = true,
 			waitSoundChoice = "invite",
 			pauseSound = true,
@@ -174,8 +175,38 @@ function ns.GetAddonVersion()
 	return version or (ns.CHANGELOG and ns.CHANGELOG[1] and ns.CHANGELOG[1].version)
 end
 
+-- open chat tabs except the combat log, in tab order
+function ns.GetChatTabs()
+	local tabs = {}
+	if not GetChatWindowInfo then
+		return tabs
+	end
+	for i = 1, NUM_CHAT_WINDOWS or 10 do
+		local name, _, _, _, _, _, shown, _, docked = GetChatWindowInfo(i)
+		local frame = _G["ChatFrame" .. i]
+		if frame and name and name ~= "" and (shown or docked) and frame ~= _G.COMBATLOG then
+			tabs[#tabs + 1] = { name = name, frame = frame }
+		end
+	end
+	return tabs
+end
+
+-- a saved tab that's been closed or renamed falls back to the main window
+function ns.GetOutputFrame()
+	local ok, settings = pcall(ns.GetSettings)
+	local name = ok and settings and settings.outputTab
+	if name then
+		for _, tab in ipairs(ns.GetChatTabs()) do
+			if tab.name == name then
+				return tab.frame
+			end
+		end
+	end
+	return DEFAULT_CHAT_FRAME
+end
+
 function ns.Print(msg)
-	DEFAULT_CHAT_FRAME:AddMessage("|cffd9a54aWorth Saying|r: " .. tostring(msg))
+	ns.GetOutputFrame():AddMessage("|cffd9a54aWorth Saying|r: " .. tostring(msg))
 end
 
 function ns.Trim(text)

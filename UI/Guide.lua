@@ -14,6 +14,7 @@ local function tokenLines()
 		lines[#lines + 1] = code("%" .. token.key) .. "  " .. token.description
 	end
 	lines[#lines + 1] = code("%%") .. "  a literal % sign"
+	lines[#lines + 1] = "Roles come from the group finder, a role check, or players setting their own on their portrait. When nobody has a role, its tokens say \"tank\", \"healer\" or \"DPS\" instead. Change those words, and the one %t uses with no target, in Options > Playback."
 	return lines
 end
 

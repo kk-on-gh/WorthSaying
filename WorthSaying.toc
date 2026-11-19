@@ -2,11 +2,12 @@
 ## Title: Worth Saying
 ## Notes: Write speeches, tours and RP scripts, then deliver them to chat line by line, by hand or on a timer.
 ## Author: Kyle
-## Version: 0.1.0
+## Version: 0.1.1
 ## SavedVariables: WorthSayingDB
 ## IconTexture: Interface\AddOns\WorthSaying\Media\MinimapIcon.png
 ## X-Category: Roleplay
 ## X-License: GPL-3.0
+## X-Wago-ID: BKpEoaGE
 
 Core/Namespace.lua
 Core/Changelog.lua

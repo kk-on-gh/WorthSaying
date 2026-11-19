@@ -121,7 +121,7 @@ local function resolveWhisperTarget(raw)
 end
 
 local function echoLocal(prefix, text, r, g, b)
-	DEFAULT_CHAT_FRAME:AddMessage(ns.ColorText("[Rehearse] " .. prefix .. " ", 0.7, 0.7, 0.7) .. ns.ColorText(text, r, g, b))
+	ns.GetOutputFrame():AddMessage(ns.ColorText("[Rehearse] " .. prefix .. " ", 0.7, 0.7, 0.7) .. ns.ColorText(text, r, g, b))
 end
 
 local function performEmote(token, command, target, trackIndex)

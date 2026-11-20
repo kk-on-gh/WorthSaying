@@ -177,6 +177,12 @@ local function setPreviewMode(preview)
 	end
 end
 
+function ns.SetEditorPreview(preview)
+	if editor and showingPreview ~= preview then
+		setPreviewMode(preview)
+	end
+end
+
 local chipPool = {}
 
 local function layoutTriggerChips()
@@ -214,7 +220,7 @@ local function layoutTriggerChips()
 	local rows = #triggers == 0 and 1 or (1 + math.floor(-y / rowHeight))
 	editor.noTriggers:SetShown(#triggers == 0)
 	area:SetHeight(rows * rowHeight)
-	editor.header:SetHeight(70 + rows * rowHeight + 10)
+	editor.header:SetHeight(70 + rows * rowHeight + 24)
 end
 
 StaticPopupDialogs["WS_ADD_TRIGGER_NAME"] = {
@@ -335,8 +341,25 @@ local function showTagMenu(anchor)
 	end)
 end
 
+local function macroText(speech)
+	return (speech.kind == "quip" and "/ws quip " or "/ws play ") .. speech.name
+end
+
+local function updateMacroRow(speech)
+	local isQuip = speech.kind == "quip"
+	editor.macroBox:SetText(macroText(speech))
+	editor.macroBox:SetCursorPosition(0)
+	editor.hiddenCheck:SetChecked(speech.playHidden and true or false)
+	editor.hiddenCheck:SetEnabled(not isQuip)
+	editor.hiddenCheck:SetAlpha(isQuip and 0.4 or 1)
+	editor.hiddenLabel:SetAlpha(isQuip and 0.4 or 1)
+end
+
 local function updateKindControls(speech)
 	local isQuip = speech and speech.kind == "quip"
+	if speech then
+		updateMacroRow(speech)
+	end
 	editor.delayBox:EnableMouse(not isQuip)
 	editor.delayBox:EnableKeyboard(not isQuip)
 	editor.delayBox:SetAlpha(isQuip and 0.4 or 1)
@@ -456,6 +479,7 @@ function ns.BuildEditor(parent)
 		if s then
 			local text = ns.Trim(self:GetText())
 			s.name = text ~= "" and text or "Untitled"
+			updateMacroRow(s)
 			scheduleSave()
 		end
 	end)
@@ -478,7 +502,7 @@ function ns.BuildEditor(parent)
 		local s = currentSpeech()
 		if s then
 			local value = tonumber(self:GetText())
-			s.delay = value and math.max(0.5, math.min(120, value)) or nil
+			s.delay = value and math.max(0.1, math.min(120, value)) or nil
 			self:SetText(s.delay and tostring(s.delay) or "")
 			ns.TouchSpeech(s)
 		end
@@ -544,9 +568,45 @@ function ns.BuildEditor(parent)
 	editor.chipArea = chipArea
 
 	editor.noTriggers = ns.CreateLabel(chipArea, "None. This speech only opens when you pick it.", "GameFontDisableSmall")
-	editor.noTriggers:SetPoint("LEFT", 0, -8)
+	editor.noTriggers:SetPoint("TOPLEFT", 2, -5)
 
-	header:SetHeight(102)
+	local macroLabel = ns.CreateLabel(header, "Macro")
+	macroLabel:SetPoint("TOPLEFT", chipArea, "BOTTOMLEFT", -(LABEL_WIDTH + 4), -11)
+	macroLabel:SetWidth(LABEL_WIDTH)
+
+	local hiddenLabel = ns.CreateLabel(header, "Play hidden", "GameFontHighlightSmall")
+	hiddenLabel:SetPoint("TOP", macroLabel, "TOP", 0, -1)
+	hiddenLabel:SetPoint("RIGHT", header, "RIGHT", -10, 0)
+	local hiddenCheck = ns.CreateSmallCheckbox(header, 22, false, function(checked)
+		local s = currentSpeech()
+		if s then
+			s.playHidden = checked or nil
+			ns.TouchSpeech(s)
+		end
+	end)
+	hiddenCheck:SetPoint("RIGHT", hiddenLabel, "LEFT", -2, 0)
+	ns.AttachTooltip(hiddenCheck, "When the macro starts this speech, it plays without opening the presenter. If a Say or Yell line needs a key press, or the script hits a /pause, it tells you in chat. Run the macro again to carry on. Opening it any other way still shows the presenter.")
+	editor.hiddenCheck, editor.hiddenLabel = hiddenCheck, hiddenLabel
+
+	local macroBox = leftBox(header, 100, 20)
+	macroBox:SetPoint("LEFT", macroLabel, "RIGHT", 4, 0)
+	macroBox:SetPoint("RIGHT", hiddenCheck, "LEFT", -10, 0)
+	macroBox:SetScript("OnTextChanged", function(self, userInput)
+		local s = userInput and currentSpeech()
+		if s then
+			self:SetText(macroText(s))
+			self:HighlightText()
+		end
+	end)
+	macroBox:SetScript("OnEditFocusGained", function(self) self:HighlightText() end)
+	macroBox:SetScript("OnMouseUp", function(self) self:HighlightText() end)
+	ns.AttachTooltip(macroBox, "Put this in a macro to start the speech from your action bar. Click, then Ctrl+C to copy. Running it again mid-speech carries on from where it stopped.")
+	editor.macroBox = macroBox
+	ns.RegisterTourTarget("editor.header", header)
+	ns.RegisterTourTarget("editor.triggers", { triggersLabel, addTriggerButton })
+	ns.RegisterTourTarget("editor.macro", { macroLabel, hiddenLabel })
+
+	header:SetHeight(116)
 
 	local scriptTab = ns.CreateButton(body, "Script", 70, 20, function() setPreviewMode(false) end)
 	scriptTab:SetPoint("TOPLEFT", header, "BOTTOMLEFT", 0, -6)
@@ -558,6 +618,8 @@ function ns.BuildEditor(parent)
 	local helpButton = ns.CreateButton(body, "?", 20, 20, function() ns.SelectGuideTab() end,
 		"Script syntax: /s /y /e /p /ra /rw /i /g /o /w name /1-/9 /gr, any emote like /bow, /wait 5, /pause, ## Section, // note, and tokens like %t and %z. Click for the full guide.")
 	helpButton:SetPoint("TOPRIGHT", header, "BOTTOMRIGHT", 0, -6)
+	ns.RegisterTourTarget("editor.help", helpButton)
+	ns.RegisterTourTarget("editor.tabs", { scriptTab, previewTab })
 
 	editor.status = body:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
 	editor.status:SetPoint("RIGHT", helpButton, "LEFT", -8, 0)
@@ -641,6 +703,7 @@ function ns.BuildEditor(parent)
 		end
 	end)
 	editor.scriptHolder = scriptHolder
+	ns.RegisterTourTarget("editor.script", scriptHolder)
 	ns.AttachUndo(scriptHolder.editBox, function(text)
 		local s = currentSpeech()
 		if s then

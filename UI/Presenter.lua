@@ -327,6 +327,12 @@ local function setMinimized(minimized)
 	ns.RefreshPresenter()
 end
 
+function ns.SetPresenterMinimized(minimized)
+	if frame and ns.GetSettings().presenter.minimized ~= minimized then
+		setMinimized(minimized)
+	end
+end
+
 local function createFrame()
 	frame = CreateFrame("Frame", "WSPresenter", UIParent, "BackdropTemplate")
 	frame:SetSize(WIDTH, HEIGHT)
@@ -420,6 +426,7 @@ local function createFrame()
 	frame.controls = buildControls(row, false)
 	frame.controls.restart:SetPoint("LEFT", 0, 0)
 	frame.controls.rehearse:SetPoint("BOTTOMRIGHT", full, "BOTTOMRIGHT", -10, 8)
+	ns.RegisterTourTarget("presenter.controls", row)
 
 	frame.delayBox = ns.CreateSmallEditBox(row, 34, 20)
 	frame.delayBox:SetPoint("RIGHT", -12, 0)
@@ -431,7 +438,7 @@ local function createFrame()
 		if speech then
 			local value = tonumber(self:GetText())
 			if value then
-				value = math.max(0.5, math.min(120, value))
+				value = math.max(0.1, math.min(120, value))
 				speech.delay = value ~= ns.GetSettings().playback.delay and value or nil
 			elseif ns.Trim(self:GetText()) == "" then
 				speech.delay = nil
@@ -496,6 +503,10 @@ function ns.ShowPresenter()
 	f:Show()
 	f:Raise()
 	ns.RefreshPresenter()
+end
+
+function ns.IsPresenterShown()
+	return frame ~= nil and frame:IsShown()
 end
 
 function ns.HidePresenter()

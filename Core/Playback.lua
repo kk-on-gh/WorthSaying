@@ -25,6 +25,7 @@ function ns.GetPlaybackState()
 end
 
 local function refresh()
+	state.changedAt = GetTime()
 	if ns.RefreshPresenter then
 		ns.RefreshPresenter()
 	end
@@ -238,7 +239,7 @@ local function delayAfter(entry)
 	if settings.scaleWithLength and entry and entry.text then
 		base = base + (ns.Utf8Len(entry.text) / 50) * settings.secondsPer50Chars
 	end
-	return math.max(0.5, base)
+	return math.max(0.1, base)
 end
 
 local function hasSendableFrom(index)
@@ -291,10 +292,17 @@ end
 
 local step
 
+local function presenterHidden()
+	return not (ns.IsPresenterShown and ns.IsPresenterShown())
+end
+
 local function waitForKey()
 	state.waiting = "key"
 	if ns.GetSettings().playback.waitSound then
 		ns.PlaySoundChoice(ns.GetSettings().playback.waitSoundChoice)
+	end
+	if presenterHidden() then
+		ns.Print("The next line needs a key press. Run the macro again, or press your Send key.")
 	end
 	refresh()
 end
@@ -367,7 +375,8 @@ function step(hardware)
 				state.waiting = "pause"
 				state.pauseNote = entry.text
 				cancelTimer()
-				ns.Print(entry.text and ("Paused: " .. entry.text) or "Paused. Press Play to continue.")
+				local resume = presenterHidden() and "Run the macro again, or press your Play key, to continue." or "Press Play to continue."
+				ns.Print(entry.text and ("Paused: " .. entry.text .. " " .. resume) or ("Paused. " .. resume))
 				if ns.GetSettings().playback.pauseSound then
 					ns.PlaySoundChoice(ns.GetSettings().playback.pauseSoundChoice)
 				end

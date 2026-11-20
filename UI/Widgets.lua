@@ -1,5 +1,15 @@
 local ns = WorthSaying
 
+-- frames the tour points at, filled in as each panel builds (UI/Tour.lua)
+ns.tourTargets = {}
+-- Options section boxes by title
+ns.tourBoxes = {}
+
+-- target: a frame, { topLeftFrame, bottomRightFrame }, or a function returning either
+function ns.RegisterTourTarget(name, target)
+	ns.tourTargets[name] = target
+end
+
 -- options may be a function, rebuilt each time the menu opens
 function ns.CreateDropdown(parent, options, isSelected, onChange, width, height)
 	local function getOptions()

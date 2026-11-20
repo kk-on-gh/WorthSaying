@@ -34,6 +34,10 @@ local function migrate(savedDb)
 	if from < 1 then
 		savedDb.schemaVersion = 1
 	end
+	local playback = savedDb.settings and savedDb.settings.playback
+	if playback then
+		playback.countUses = nil
+	end
 	savedDb.schemaVersion = ns.CURRENT_SCHEMA_VERSION
 end
 
@@ -257,10 +261,26 @@ function ns.DuplicateSpeech(id)
 	return ns.CreateSpeech(copy)
 end
 
+-- the tour is offered once per account
+function ns.WasTourOffered()
+	return db.tourOffered == true
+end
+
+function ns.MarkTourOffered()
+	db.tourOffered = true
+end
+
+-- a version's "what's new" tour button glows until it's been shown once
+function ns.WasFeatureTourSeen(version)
+	return db.seenFeatureTours ~= nil and db.seenFeatureTours[version] == true
+end
+
+function ns.MarkFeatureTourSeen(version)
+	db.seenFeatureTours = db.seenFeatureTours or {}
+	db.seenFeatureTours[version] = true
+end
+
 function ns.MarkSpeechUsed(speech)
-	if not ns.GetSettings().playback.countUses then
-		return
-	end
 	speech.uses = (speech.uses or 0) + 1
 	speech.lastUsed = time()
 end
@@ -298,6 +318,7 @@ function ns.ImportSpeech(fields)
 		kind = fields.kind,
 		channel = fields.channel,
 		delay = tonumber(fields.delay),
+		playHidden = fields.playHidden == true or nil,
 		triggers = fields.triggers,
 	}
 	return ns.CreateSpeech(clean)

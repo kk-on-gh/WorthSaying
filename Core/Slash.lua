@@ -42,6 +42,33 @@ local function printUsage()
 	ns.GetOutputFrame():AddMessage("  /ws options         - open Options")
 end
 
+-- running it again mid-speech carries on, unless it has sat stopped past the timeout
+local function isStale(state)
+	local limit = ns.GetSettings().playback.macroResumeSeconds or 0
+	local stopped = state.waiting or not state.playing
+	return limit > 0 and stopped and state.changedAt ~= nil and GetTime() - state.changedAt > limit
+end
+
+function ns.PlayFromMacro(speech)
+	local state = ns.GetPlaybackState()
+	local current = state.speech and state.speech.id == speech.id and not state.finished and speech.kind ~= "quip"
+		and not isStale(state)
+	if current and state.waiting == "key" then
+		ns.Next()
+		return
+	elseif current and (state.playing or state.index > 1 or state.pieces) then
+		if not state.playing then
+			ns.Play()
+		end
+		return
+	end
+	ns.LoadSpeech(speech.id, {})
+	if not speech.playHidden or speech.kind == "quip" then
+		ns.ShowPresenter()
+	end
+	ns.Play()
+end
+
 local function withSpeech(name, fn)
 	local speech = ns.FindSpeechByName(name or "")
 	if not speech then
@@ -69,11 +96,7 @@ local function handler(msg)
 			ns.TogglePresenter()
 		end
 	elseif cmd == "play" then
-		withSpeech(rest, function(speech)
-			ns.LoadSpeech(speech.id, {})
-			ns.ShowPresenter()
-			ns.Play()
-		end)
+		withSpeech(rest, ns.PlayFromMacro)
 	elseif cmd == "next" or cmd == "n" then
 		ns.Next()
 	elseif cmd == "back" or cmd == "b" then

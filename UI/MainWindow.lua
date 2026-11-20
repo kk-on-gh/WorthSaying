@@ -237,6 +237,7 @@ local function createTabs()
 			tab:SetPoint("TOPLEFT", 14, -36)
 		end
 		tab:SetScript("OnClick", function(self) setTab(self:GetID()) end)
+		ns.RegisterTourTarget("tab." .. label:lower(), tab)
 		prevTab = tab
 		tabs[i] = tab
 	end
@@ -341,6 +342,7 @@ local function createMainFrame()
 	local rehearseButton = ns.CreateRehearseButton(mainFrame)
 	rehearseButton:SetPoint("RIGHT", footerBand, "RIGHT", -18, 0)
 	mainFrame.rehearseButton = rehearseButton
+	ns.RegisterTourTarget("main.rehearse", rehearseButton)
 
 	local tabButtons = createTabs()
 
@@ -399,6 +401,7 @@ local function createMainFrame()
 		if not minimized then
 			selectTab(mainFrame.selectedTab or 1)
 		end
+		ns.OfferTourOnce()
 	end)
 end
 

@@ -147,6 +147,7 @@ local function createSectionBox(parent, y, height, title)
 	titleText:SetPoint("TOPLEFT", 8, -6)
 	titleText:SetText(title)
 	box.titleText = titleText
+	ns.tourBoxes[title] = box
 	return box
 end
 
@@ -215,11 +216,11 @@ local function outputTabOptions()
 end
 
 local function buildPlaybackBox(parent, y)
-	local height = 376
+	local height = 378
 	local box = createSectionBox(parent, y, height, "Playback")
 
 	local delay = buildSlider(box, {
-		x = 10, y = -28, label = "Default delay after each line", min = 0.5, max = 15, step = 0.5, width = 180, suffix = "s",
+		x = 10, y = -28, label = "Default delay after each line", min = 0.1, max = 15, step = 0.1, width = 180, suffix = "s",
 		getValue = function() return playback().delay end,
 		setValue = function(value)
 			playback().delay = value
@@ -228,6 +229,8 @@ local function buildPlaybackBox(parent, y)
 			end
 		end,
 	})
+
+	ns.RegisterTourTarget("options.delay", { delay.label, delay.highText })
 
 	local perChar
 	local scaleCheck = buildCheckbox(box, 230, -28, "Add time for longer lines", playback().scaleWithLength, function(checked)
@@ -274,16 +277,12 @@ local function buildPlaybackBox(parent, y)
 	soundRow(-168, "Play a sound when auto-play needs your key press", "waitSound", "waitSoundChoice")
 	soundRow(-192, "Play a sound when a speech pauses", "pauseSound", "pauseSoundChoice")
 	soundRow(-216, "Play a sound when a speech finishes", "finishSound", "finishSoundChoice")
-	buildCheckbox(box, 10, -240, "Count uses (Uses and Last Used columns)", playback().countUses, function(checked)
-		playback().countUses = checked
-	end)
-
-	buildCheckbox(box, 10, -264, "Perform action emotes while rehearsing", ns.GetSettings().presenter.rehearseEmotes, function(checked)
+	buildCheckbox(box, 10, -240, "Perform action emotes while rehearsing", ns.GetSettings().presenter.rehearseEmotes, function(checked)
 		ns.GetSettings().presenter.rehearseEmotes = checked
 	end, "Rehearse normally keeps everything to yourself. With this on, emotes like /cheer and {bow} are really performed, so you can check how they look. Players near you will see them. Text lines still only print to you.")
 
 	local fallbackLabel = ns.CreateLabel(box, "%t or %f with no one there becomes", "GameFontHighlightSmall")
-	fallbackLabel:SetPoint("TOPLEFT", 14, -298)
+	fallbackLabel:SetPoint("TOPLEFT", 14, -274)
 	local fallbackBox = ns.CreateSmallEditBox(box, 110, 18)
 	fallbackBox:SetJustifyH("LEFT")
 	fallbackBox:SetTextInsets(4, 4, 0, 0)
@@ -298,7 +297,7 @@ local function buildPlaybackBox(parent, y)
 	ns.AttachTooltip(fallbackBox, "Used for %t, %tt, %f and %ff when you have no target or focus. Leave blank to drop the word.")
 
 	local roleLabel = ns.CreateLabel(box, "With nobody in a role, role tokens say", "GameFontHighlightSmall")
-	roleLabel:SetPoint("TOPLEFT", 14, -324)
+	roleLabel:SetPoint("TOPLEFT", 14, -300)
 	local anchor = roleLabel
 	for _, role in ipairs({ "tank", "healer", "dps" }) do
 		local roleBox = ns.CreateSmallEditBox(box, 70, 18)
@@ -317,7 +316,7 @@ local function buildPlaybackBox(parent, y)
 	end
 
 	local outputLabel = ns.CreateLabel(box, "Rehearse lines and addon messages go to", "GameFontHighlightSmall")
-	outputLabel:SetPoint("TOPLEFT", 14, -350)
+	outputLabel:SetPoint("TOPLEFT", 14, -326)
 	outputDropdown = ns.CreateDropdown(box, outputTabOptions,
 		function(value) return (ns.GetSettings().outputTab or "") == value end,
 		function(value)
@@ -326,6 +325,26 @@ local function buildPlaybackBox(parent, y)
 		end, 180, 20)
 	outputDropdown:SetPoint("LEFT", outputLabel, "RIGHT", 8, 0)
 	ns.AttachHookTooltip(outputDropdown, "Which chat tab gets [Rehearse] lines and Worth Saying's own messages. These aren't a chat type, so the tab's chat filters don't affect them. If the tab is closed or renamed, they go to the main window.")
+
+	local resumeLabel = ns.CreateLabel(box, "A speech's macro picks up where it stopped for", "GameFontHighlightSmall")
+	resumeLabel:SetPoint("TOPLEFT", 14, -352)
+	local resumeBox = ns.CreateSmallEditBox(box, 44, 18, true)
+	resumeBox:SetJustifyH("LEFT")
+	resumeBox:SetTextInsets(4, 4, 0, 0)
+	resumeBox:SetPoint("LEFT", resumeLabel, "RIGHT", 6, 0)
+	resumeBox:SetText(tostring(playback().macroResumeSeconds or 0))
+	local resumeUnit = ns.CreateLabel(box, "seconds", "GameFontHighlightSmall")
+	resumeUnit:SetPoint("LEFT", resumeBox, "RIGHT", 4, 0)
+	local function applyResume(self)
+		local value = math.min(3600, tonumber(self:GetText()) or 0)
+		playback().macroResumeSeconds = value
+		self:SetText(tostring(value))
+		self:ClearFocus()
+	end
+	ns.RegisterTourTarget("options.resume", { resumeLabel, resumeUnit })
+	resumeBox:SetScript("OnEnterPressed", applyResume)
+	resumeBox:SetScript("OnEditFocusLost", applyResume)
+	ns.AttachTooltip(resumeBox, "When a speech started by its macro stops for a key press or a /pause, running the macro again carries on. If it has sat stopped longer than this, the next run starts it over instead. 0 means it always carries on.")
 
 	return y - height - 6
 end

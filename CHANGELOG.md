@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.2] - 2026-11-19
+
+### Added
+- Tours! A quick guided walk around Worth Saying, offered the first time you open it and any time from the About tab, plus a "what's new" tour for each new version in its patch notes.
+- Play hidden (per speech): starting it from its macro plays it without opening the presenter. When it stops for a Say or Yell key press or a /pause, it says so in chat, and running the macro again carries on.
+- The editor shows each speech's macro command, ready to copy.
+
+### Changed
+- Running /ws play again for a speech that's stopped partway carries on from where it stopped, instead of starting over. After 60 seconds stopped, it starts over (change this in Options > Playback).
+- The delay after each line can go as low as 0.1 seconds, down from 0.5.
+- Uses always count now. The "Count uses" option is gone.
+- Minor UI adjustments.
+
 ## [0.1.1] - 2026-11-18
 
 ### Added

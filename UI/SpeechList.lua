@@ -390,6 +390,10 @@ function ns.BuildSpeechList(parent)
 	})
 	listTable.container:SetPoint("TOPLEFT", 0, -62)
 	listTable.container:SetPoint("BOTTOMRIGHT", bottomBar, "TOPRIGHT", 0, 4)
+
+	ns.RegisterTourTarget("speeches.filters", { filterBar, filterBar2 })
+	ns.RegisterTourTarget("speeches.table", listTable.container)
+	ns.RegisterTourTarget("speeches.bottom", bottomBar)
 end
 
 function ns.RefreshSpeechList()

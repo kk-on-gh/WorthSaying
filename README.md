@@ -102,6 +102,7 @@ GPL-3.0. See [LICENSE](LICENSE).
 
 * Keybinds for Send, Back, Play/Pause, the presenter, and the main window, set in Options.
 * `/ws` with `present`, `play`, `next`, `back`, `skip`, `pause`, `stop`, `quip`, and `rehearse` subcommands, all macro-friendly.
+* A guided tour of the whole addon, offered the first time you open it and any time from the About tab.
 * A built-in Guide tab that covers every script feature, plus a sample tour that shows most of them off.
 * Opacity and scale settings for both windows.
 

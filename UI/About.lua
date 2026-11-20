@@ -50,6 +50,67 @@ end
 
 local layout
 
+-- a "what's new" tour (ns.TOURS["v<version>"]) gets a button in its section, for the
+-- newest three versions only: older tours point at UI that may have moved since
+local FEATURE_TOUR_VERSIONS = 3
+local tourButtons = {}
+-- glows from first sight until hovered
+local glowing = {}
+
+local function addGlow(button)
+	local ok, glow = pcall(CreateFrame, "Frame", nil, button, "GlowBoxTemplate")
+	if not ok then
+		return nil
+	end
+	for _, key in ipairs({ "BG", "ShadowTopLeft", "ShadowTopRight", "ShadowBottomLeft", "ShadowBottomRight",
+		"ShadowTop", "ShadowBottom", "ShadowLeft", "ShadowRight" }) do
+		if glow[key] then
+			glow[key]:Hide()
+		end
+	end
+	glow:SetPoint("TOPLEFT", -3, 3)
+	glow:SetPoint("BOTTOMRIGHT", 3, -3)
+	glow:EnableMouse(false)
+	local pulse = glow:CreateAnimationGroup()
+	pulse:SetLooping("BOUNCE")
+	local fade = pulse:CreateAnimation("Alpha")
+	fade:SetFromAlpha(1)
+	fade:SetToAlpha(0.25)
+	fade:SetDuration(0.9)
+	pulse:Play()
+	return glow
+end
+
+local function getTourButton(version)
+	local button = tourButtons[version]
+	if not button then
+		button = CreateFrame("Button", nil, scrollChild, "UIPanelButtonTemplate")
+		button:SetSize(170, 20)
+		button:SetText("Tour what's new in " .. version)
+		button:SetScript("OnClick", function() ns.StartTour("v" .. version) end)
+		button:HookScript("OnEnter", function(self)
+			glowing[version] = nil
+			if self.glow then
+				self.glow:Hide()
+			end
+		end)
+		tourButtons[version] = button
+	end
+	if not ns.WasFeatureTourSeen(version) then
+		ns.MarkFeatureTourSeen(version)
+		glowing[version] = true
+	end
+	if glowing[version] and not button.glow then
+		button.glow = addGlow(button)
+	end
+	if button.glow then
+		button.glow:SetShown(glowing[version] == true)
+	end
+	button:ClearAllPoints()
+	button:Show()
+	return button
+end
+
 local function getHeader()
 	headersUsed = headersUsed + 1
 	local header = headerPool[headersUsed]
@@ -70,6 +131,9 @@ end
 
 function layout()
 	used, headersUsed = 0, 0
+	for _, button in pairs(tourButtons) do
+		button:Hide()
+	end
 	local width = math.max(200, scroll:GetWidth())
 	scrollChild:SetWidth(width)
 	local y = -4
@@ -87,6 +151,11 @@ function layout()
 		y = y - 22
 
 		if expanded[index] then
+			if index <= FEATURE_TOUR_VERSIONS and ns.TOURS and ns.TOURS["v" .. entry.version] then
+				local button = getTourButton(entry.version)
+				button:SetPoint("TOPLEFT", 16, y - 2)
+				y = y - 30
+			end
 			for _, paragraph in ipairs(entry.intro or {}) do
 				local fs = getString("GameFontHighlightSmall")
 				fs:SetPoint("TOPLEFT", 16, y)
@@ -155,6 +224,12 @@ function ns.BuildAboutPanel(parent)
 	patchCheckLabel:SetPoint("LEFT", patchCheck, "RIGHT", 2, 0)
 	patchCheckLabel:SetText("Show patch notes for new versions")
 	ns.AttachTooltip(patchCheck, "Opens this tab once after Worth Saying updates to a new version.")
+	ns.RegisterTourTarget("about.patchNotes", { patchCheck, patchCheckLabel })
+
+	local tourButton = ns.CreateButton(header, "Take the Tour", 120, 20, function() ns.StartTour("basics") end,
+		"A quick walk through the basics, about two minutes.")
+	tourButton:SetPoint("LEFT", patchCheckLabel, "RIGHT", 16, 0)
+	ns.RegisterTourTarget("about.tours", tourButton)
 
 	local welcome = header:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
 	welcome:SetPoint("TOPLEFT", logo, "BOTTOMLEFT", 0, -12)
@@ -163,7 +238,7 @@ function ns.BuildAboutPanel(parent)
 	welcome:SetWordWrap(true)
 	welcome:SetSpacing(3)
 	welcome:SetText("Thank you so much for trying Worth Saying!\n"
-		.. "New here? The Guide tab covers everything a script can do, and the Sample Tour speech shows most of it in action.\n"
+		.. "New here? Take the Tour for a quick look around. The Guide tab covers everything a script can do, and the Sample Tour speech shows most of it in action.\n"
 		.. "Please feel very free to share any feedback, bug reports, feature requests, etc with me, I'd love to hear from you.")
 
 	local patchNotesLabel = header:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
@@ -213,7 +288,8 @@ function ns.BuildAboutPanel(parent)
 	end
 
 	local emailBox = addContactLine(contactHeading, "Email:", "worthsaying.apricot890@passmail.com")
-	addContactLine(emailBox, "Discord:", "maliceftw")
+	local discordBox = addContactLine(emailBox, "Discord:", "maliceftw")
+	ns.RegisterTourTarget("about.contact", { contactHeading, discordBox })
 
 	scroll = CreateFrame("ScrollFrame", nil, parent, "UIPanelScrollFrameTemplate")
 	ns.SetGentleScroll(scroll)

@@ -135,7 +135,7 @@ local function decodeBase64(data)
 	return table.concat(out)
 end
 
-local EXPORT_FIELDS = { "name", "text", "tags", "kind", "channel", "delay", "triggers" }
+local EXPORT_FIELDS = { "name", "text", "tags", "kind", "channel", "delay", "playHidden", "triggers" }
 
 function ns.ExportSpeeches(speeches)
 	local payload = { v = 1, speeches = {} }
@@ -191,6 +191,7 @@ function ns.DecodeImport(text)
 				kind = s.kind,
 				channel = s.channel,
 				delay = tonumber(s.delay),
+				playHidden = s.playHidden == true or nil,
 				triggers = triggers,
 			}
 		end

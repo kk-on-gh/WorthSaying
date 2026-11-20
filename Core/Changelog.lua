@@ -3,6 +3,22 @@ local ns = WorthSaying
 -- mirrors CHANGELOG.md, newest first. the game can't read that file
 ns.CHANGELOG = {
 	{
+		version = "0.2", date = "2026-11-19", shipped = true,
+		sections = {
+			{ heading = "Added", items = {
+				"Tours! A quick guided walk around Worth Saying, offered the first time you open it and any time from the About tab, plus a \"what's new\" tour for each new version in its patch notes.",
+				"Play hidden (per speech): starting it from its macro plays it without opening the presenter. When it stops for a Say or Yell key press or a /pause, it says so in chat, and running the macro again carries on.",
+				"The editor shows each speech's macro command, ready to copy.",
+			}},
+			{ heading = "Changed", items = {
+				"Running /ws play again for a speech that's stopped partway carries on from where it stopped, instead of starting over. After 60 seconds stopped, it starts over (change this in Options > Playback).",
+				"The delay after each line can go as low as 0.1 seconds, down from 0.5.",
+				"Uses always count now. The \"Count uses\" option is gone.",
+				"Minor UI adjustments.",
+			}},
+		},
+	},
+	{
 		version = "0.1.1", date = "2026-11-18", shipped = true,
 		sections = {
 			{ heading = "Added", items = {

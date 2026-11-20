@@ -51,6 +51,7 @@ local SECTIONS = {
 		"Inside dungeons and raids, everything can play on its own.",
 		"During boss fights and similar, the game can block addon chat entirely. Auto-play waits until it lifts.",
 		"Set a Next key in Options, or put " .. code("/ws next") .. " in a macro on your action bar.",
+		"The editor shows each speech's macro, " .. code("/ws play Name") .. ". Tick Play hidden to run it without the presenter. When it stops for a key press or a /pause, it says so in chat. Run the macro again to carry on.",
 	}},
 	{ heading = "Quips", lines = {
 		"A quip is a speech where each Send picks one random line. Good for greetings, pull lines and jokes.",

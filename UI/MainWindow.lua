@@ -1,4 +1,5 @@
 local ns = WorthSaying
+local Skin = ns.Skin
 
 local MIN_WIDTH, MIN_HEIGHT = 960, 520
 local DEFAULT_SCREEN_SHARE = 0.7
@@ -6,6 +7,7 @@ local DEFAULT_MIN_WIDTH, DEFAULT_MAX_WIDTH = 960, 1440
 local ASPECT = 9 / 16
 local MINIMIZED_WIDTH, MINIMIZED_HEIGHT = 280, 56
 local CONTENT_TOP = 68
+local SKINNED_TAB_HEIGHT, SKINNED_CONTENT_TOP, SKINNED_MINIMIZED_HEIGHT = 26, 62, 30
 local LIST_MIN_WIDTH, EDITOR_MIN_WIDTH = 380, 470
 
 local TAB_SPEECHES, TAB_OPTIONS, TAB_GUIDE, TAB_ABOUT = 1, 2, 3, 4
@@ -13,6 +15,13 @@ local TAB_LABELS = { "Speeches", "Options", "Guide", "About" }
 
 local mainFrame
 local contents = {}
+local tabButtons = {}
+
+local function markSelectedTab(index)
+	for i, tab in ipairs(tabButtons) do
+		Skin.SetTabSelected(tab, i == index)
+	end
+end
 
 local function defaultWindowSize()
 	local scale = ns.GetSettings().uiScale or 1
@@ -101,6 +110,7 @@ local function createResizeGrip()
 	grip:SetNormalTexture("Interface/ChatFrame/UI-ChatIM-SizeGrabber-Up")
 	grip:SetHighlightTexture("Interface/ChatFrame/UI-ChatIM-SizeGrabber-Highlight")
 	grip:SetPushedTexture("Interface/ChatFrame/UI-ChatIM-SizeGrabber-Down")
+	Skin.ResizeGrip(grip)
 	local startX, startY, startW, startH
 	local function onResize()
 		local scale = mainFrame:GetEffectiveScale()
@@ -174,10 +184,10 @@ local function createSpeechesContent(content)
 	line:SetPoint("TOP", 0, -4)
 	line:SetPoint("BOTTOM", 0, 4)
 	line:SetWidth(1)
-	line:SetColorTexture(1, 0.82, 0, 0.3)
+	Skin.Line(line, 0.3)
 	local lineHover = divider:CreateTexture(nil, "HIGHLIGHT")
 	lineHover:SetAllPoints()
-	lineHover:SetColorTexture(1, 0.82, 0, 0.25)
+	Skin.Accent(lineHover, 0.25)
 	divider:SetScript("OnMouseDown", function(self)
 		self:SetScript("OnUpdate", function()
 			local scale = content:GetEffectiveScale()
@@ -222,21 +232,26 @@ local function setTab(index)
 		PanelTemplates_SetTab(mainFrame, index)
 	end
 	mainFrame.selectedTab = index
+	markSelectedTab(index)
 	selectTab(index)
 end
 
 local function createTabs()
 	local tabs, prevTab = {}, nil
+	local skinned = Skin.IsActive()
 	for i, label in ipairs(TAB_LABELS) do
 		local tab = CreateFrame("Button", "WSFrameTab" .. i, mainFrame, "PanelTabButtonTemplate")
 		tab:SetText(label)
 		tab:SetID(i)
 		if prevTab then
-			tab:SetPoint("LEFT", prevTab, "RIGHT", -8, 0)
+			tab:SetPoint("LEFT", prevTab, "RIGHT", skinned and 1 or -8, 0)
 		else
-			tab:SetPoint("TOPLEFT", 14, -36)
+			tab:SetPoint("TOPLEFT", skinned and 12 or 14, skinned and -32 or -36)
 		end
 		tab:SetScript("OnClick", function(self) setTab(self:GetID()) end)
+		if Skin.Tab(tab) then
+			tab:SetHeight(SKINNED_TAB_HEIGHT)
+		end
 		ns.RegisterTourTarget("tab." .. label:lower(), tab)
 		prevTab = tab
 		tabs[i] = tab
@@ -246,6 +261,8 @@ local function createTabs()
 		PanelTemplates_SetTab(mainFrame, 1)
 	end
 	mainFrame.selectedTab = 1
+	tabButtons = tabs
+	markSelectedTab(1)
 	return tabs
 end
 
@@ -283,64 +300,84 @@ local function createMainFrame()
 		mainFrame:StopMovingOrSizing()
 		savePosition()
 	end)
-	mainFrame:SetBackdrop({
-		edgeFile = "Interface/DialogFrame/UI-DialogBox-Border",
-		edgeSize = 32,
-		insets = { left = 11, right = 12, top = 12, bottom = 11 },
-	})
-	mainFrame:SetBackdropBorderColor(0.85, 0.68, 0.3, 1)
+	local skinned = Skin.Window(mainFrame)
+	if not skinned then
+		mainFrame:SetBackdrop({
+			edgeFile = "Interface/DialogFrame/UI-DialogBox-Border",
+			edgeSize = 32,
+			insets = { left = 11, right = 12, top = 12, bottom = 11 },
+		})
+		mainFrame:SetBackdropBorderColor(0.85, 0.68, 0.3, 1)
+	end
 	mainFrame:SetAlpha(settings.windowAlpha)
 	mainFrame:Hide()
 	ns.ReclampMainFrame()
 
-	local fill = mainFrame:CreateTexture(nil, "BACKGROUND", nil, -8)
-	fill:SetPoint("TOPLEFT", 11, -9)
-	fill:SetPoint("BOTTOMRIGHT", -9, 8)
-	fill:SetColorTexture(0.1, 0.08, 0.06, 1)
+	local footerBand
+	if skinned then
+		footerBand = Skin.CreateArtHost(mainFrame):CreateTexture(nil, "BACKGROUND", nil, -4)
+		footerBand:SetPoint("BOTTOMLEFT", 0, 0)
+		footerBand:SetPoint("BOTTOMRIGHT", 0, 0)
+		footerBand:SetHeight(34)
+		Skin.Band(footerBand)
+	else
+		local fill = mainFrame:CreateTexture(nil, "BACKGROUND", nil, -8)
+		fill:SetPoint("TOPLEFT", 11, -9)
+		fill:SetPoint("BOTTOMRIGHT", -9, 8)
+		fill:SetColorTexture(0.1, 0.08, 0.06, 1)
 
-	local headerBand = mainFrame:CreateTexture(nil, "BACKGROUND", nil, -4)
-	headerBand:SetPoint("TOPLEFT", 14, -12)
-	headerBand:SetPoint("TOPRIGHT", -14, -12)
-	headerBand:SetHeight(22)
-	headerBand:SetColorTexture(0.42, 0.3, 0.14, 1)
+		local headerBand = mainFrame:CreateTexture(nil, "BACKGROUND", nil, -4)
+		headerBand:SetPoint("TOPLEFT", 14, -12)
+		headerBand:SetPoint("TOPRIGHT", -14, -12)
+		headerBand:SetHeight(22)
+		headerBand:SetColorTexture(0.42, 0.3, 0.14, 1)
 
-	local footerBand = mainFrame:CreateTexture(nil, "BACKGROUND", nil, -4)
-	footerBand:SetPoint("BOTTOMLEFT", 14, 12)
-	footerBand:SetPoint("BOTTOMRIGHT", -14, 12)
-	footerBand:SetHeight(22)
-	footerBand:SetColorTexture(0.42, 0.3, 0.14, 1)
+		footerBand = mainFrame:CreateTexture(nil, "BACKGROUND", nil, -4)
+		footerBand:SetPoint("BOTTOMLEFT", 14, 12)
+		footerBand:SetPoint("BOTTOMRIGHT", -14, 12)
+		footerBand:SetHeight(22)
+		footerBand:SetColorTexture(0.42, 0.3, 0.14, 1)
 
-	for _, band in ipairs({ headerBand, footerBand }) do
-		local grain = mainFrame:CreateTexture(nil, "BACKGROUND", nil, -3)
-		grain:SetAllPoints(band)
-		grain:SetTexture("Interface\\AchievementFrame\\UI-Achievement-Parchment-Horizontal")
-		grain:SetVertexColor(0.75, 0.6, 0.35, 0.75)
-		band.grain = grain
+		for _, band in ipairs({ headerBand, footerBand }) do
+			local grain = mainFrame:CreateTexture(nil, "BACKGROUND", nil, -3)
+			grain:SetAllPoints(band)
+			grain:SetTexture("Interface\\AchievementFrame\\UI-Achievement-Parchment-Horizontal")
+			grain:SetVertexColor(0.75, 0.6, 0.35, 0.75)
+			band.grain = grain
+		end
 	end
 
-	local title = mainFrame:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
+	local title = Skin.Text(mainFrame, "ARTWORK", "GameFontNormalLarge")
 	title:SetPoint("TOP", 0, -14)
 	title:SetText("Worth Saying")
+	Skin.Title(title, mainFrame)
 
-	local close = ns.CreateButton(mainFrame, "X", 20, 20, function() mainFrame:Hide() end)
+	local topButtonHeight = skinned and 18 or 20
+	local close = ns.CreateButton(mainFrame, "X", 20, 20, function() mainFrame:Hide() end, nil, "CloseButton")
 	close:SetPoint("TOPRIGHT", -18, -13)
+	Skin.CloseButton(close, mainFrame)
 
-	local minimizeButton = ns.CreateButton(mainFrame, "_", 20, 20)
+	local minimizeButton = ns.CreateButton(mainFrame, "_", 20, topButtonHeight)
 	minimizeButton:SetPoint("RIGHT", close, "LEFT", -4, 0)
 
-	local presenterButton = ns.CreateButton(mainFrame, "Presenter", 80, 20, function() ns.TogglePresenter() end,
+	local presenterButton = ns.CreateButton(mainFrame, "Presenter", 80, topButtonHeight, function() ns.TogglePresenter() end,
 		"Show or hide the presenter, the small window you deliver speeches from.")
 	presenterButton:SetPoint("RIGHT", minimizeButton, "LEFT", -6, 0)
 
-	mainFrame.footer = mainFrame:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
-	mainFrame.footer:SetPoint("LEFT", footerBand, "LEFT", 6, 0)
-	local footerFont, _, footerFlags = mainFrame.footer:GetFont()
-	mainFrame.footer:SetFont(footerFont, 12, footerFlags)
-	mainFrame.footer:SetTextColor(0.06, 0.04, 0.02, 1)
-	mainFrame.footer:SetShadowOffset(0, 0)
+	mainFrame.footer = Skin.Text(mainFrame, "ARTWORK", "GameFontNormalSmall")
+	mainFrame.footer:SetPoint("LEFT", footerBand, "LEFT", skinned and 14 or 6, 0)
+	if skinned then
+		Skin.SetFont(mainFrame.footer, "GameFontHighlight")
+		mainFrame.footer:SetTextColor(1, 1, 1, 0.7)
+	else
+		local footerFont, _, footerFlags = mainFrame.footer:GetFont()
+		mainFrame.footer:SetFont(footerFont, 12, footerFlags)
+		mainFrame.footer:SetTextColor(0.06, 0.04, 0.02, 1)
+		mainFrame.footer:SetShadowOffset(0, 0)
+	end
 
 	local rehearseButton = ns.CreateRehearseButton(mainFrame)
-	rehearseButton:SetPoint("RIGHT", footerBand, "RIGHT", -18, 0)
+	rehearseButton:SetPoint("RIGHT", footerBand, "RIGHT", skinned and -28 or -18, 0)
 	mainFrame.rehearseButton = rehearseButton
 	ns.RegisterTourTarget("main.rehearse", rehearseButton)
 
@@ -348,7 +385,7 @@ local function createMainFrame()
 
 	for i = 1, #TAB_LABELS do
 		local content = CreateFrame("Frame", nil, mainFrame)
-		content:SetPoint("TOPLEFT", 0, -CONTENT_TOP)
+		content:SetPoint("TOPLEFT", 0, skinned and -SKINNED_CONTENT_TOP or -CONTENT_TOP)
 		content:SetPoint("BOTTOMRIGHT", 0, 44)
 		content:Hide()
 		contents[i] = content
@@ -359,6 +396,7 @@ local function createMainFrame()
 	ns.BuildAboutPanel(contents[TAB_ABOUT])
 
 	local resizeGrip = createResizeGrip()
+	Skin.OnChanged(function() ns.RefreshAll() end)
 
 	local minimized = false
 	local expandedWidth, expandedHeight
@@ -378,7 +416,9 @@ local function createMainFrame()
 			tab:SetShown(not min)
 		end
 		footerBand:SetShown(not min)
-		footerBand.grain:SetShown(not min)
+		if footerBand.grain then
+			footerBand.grain:SetShown(not min)
+		end
 		mainFrame.footer:SetShown(not min)
 		mainFrame.rehearseButton:SetShown(not min)
 		if min then
@@ -386,7 +426,7 @@ local function createMainFrame()
 			for _, content in ipairs(contents) do
 				content:Hide()
 			end
-			mainFrame:SetSize(MINIMIZED_WIDTH, MINIMIZED_HEIGHT)
+			mainFrame:SetSize(MINIMIZED_WIDTH, skinned and SKINNED_MINIMIZED_HEIGHT or MINIMIZED_HEIGHT)
 			minimizeButton:SetText("+")
 		else
 			mainFrame:SetSize(expandedWidth or MIN_WIDTH, expandedHeight or MIN_HEIGHT)

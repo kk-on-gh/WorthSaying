@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.3] - 2026-11-22
+
+### Added
+- Themes (Options > Main Window): Dark, a flat dark look with gold accents, and EllesmereUI, which takes on your EllesmereUI look, accent color and font. Both turn checkboxes into toggles and restyle the dropdown menus. Default keeps the gold and parchment.
+- Font (Options > Main Window): any font the game has or your other addons share, with every theme.
+- The Rehearse button pulses while Rehearse is on.
+- The script editor shades every other line, so wrapped lines are easier to tell apart.
+
+### Changed
+- Main Window settings are now at the top of the Options tab.
+
+### Fixed
+- The editor's Tags, Delay and Triggers rows were a few pixels out of line.
+
 ## [0.2] - 2026-11-19
 
 ### Added

@@ -1,4 +1,5 @@
 local ns = WorthSaying
+local Skin = ns.Skin
 
 local editor
 local currentId
@@ -21,7 +22,7 @@ local function leftBox(parent, width, height)
 	local box = ns.CreateSmallEditBox(parent, width, height or 20)
 	box:SetJustifyH("LEFT")
 	box:SetTextInsets(5, 5, 0, 0)
-	box:SetFontObject(GameFontHighlight)
+	Skin.SetFont(box, GameFontHighlight)
 	box:SetScript("OnEnterPressed", box.ClearFocus)
 	box:SetScript("OnEscapePressed", box.ClearFocus)
 	return box
@@ -105,17 +106,17 @@ local function refreshPreview()
 		local row = previewRows[i]
 		if not row then
 			row = CreateFrame("Button", nil, child)
-			row.num = row:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
+			row.num = Skin.Text(row, "ARTWORK", "GameFontDisableSmall")
 			row.num:SetPoint("TOPLEFT", 2, -2)
 			row.num:SetWidth(26)
 			row.num:SetJustifyH("RIGHT")
-			row.text = row:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+			row.text = Skin.Text(row, "ARTWORK", "GameFontHighlight")
 			row.text:SetPoint("TOPLEFT", 34, -2)
 			row.text:SetJustifyH("LEFT")
 			row.text:SetWordWrap(true)
 			local hl = row:CreateTexture(nil, "HIGHLIGHT")
 			hl:SetAllPoints()
-			hl:SetColorTexture(1, 0.82, 0, 0.1)
+			Skin.Hover(hl, 0.1)
 			previewRows[i] = row
 		end
 		row.num:SetText(entry.lineNo)
@@ -171,6 +172,8 @@ local function setPreviewMode(preview)
 	editor.previewHolder:SetShown(preview)
 	editor.scriptTab:SetEnabled(preview)
 	editor.previewTab:SetEnabled(not preview)
+	Skin.SetTabSelected(editor.scriptTab, not preview)
+	Skin.SetTabSelected(editor.previewTab, preview)
 	if preview then
 		editor.scriptHolder.editBox:ClearFocus()
 		refreshPreview()
@@ -263,7 +266,7 @@ local function addTrigger(trigger)
 end
 
 local function showAddTriggerMenu(anchor)
-	MenuUtil.CreateContextMenu(anchor, function(_, root)
+	ns.Skin.ContextMenu(anchor, function(_, root)
 		root:CreateTitle("Pop up this speech when...")
 		local here = {
 			{ type = "instance", label = "Entering this instance" },
@@ -315,7 +318,7 @@ local function showTagMenu(anchor)
 	if not speech then
 		return
 	end
-	MenuUtil.CreateContextMenu(anchor, function(_, root)
+	ns.Skin.ContextMenu(anchor, function(_, root)
 		local tags = ns.GetAllTags()
 		if #tags == 0 then
 			root:CreateTitle("No tags yet. Type some in the box.")
@@ -420,7 +423,7 @@ end
 function ns.BuildEditor(parent)
 	editor = {}
 
-	editor.empty = parent:CreateFontString(nil, "ARTWORK", "GameFontDisable")
+	editor.empty = Skin.Text(parent, "ARTWORK", "GameFontDisable")
 	editor.empty:SetPoint("CENTER")
 	editor.empty:SetText("Select a speech on the left, or make a new one.")
 
@@ -437,7 +440,7 @@ function ns.BuildEditor(parent)
 
 	local LABEL_WIDTH = 54
 	local nameLabel = ns.CreateLabel(header, "Name")
-	nameLabel:SetPoint("TOPLEFT", 10, -10)
+	nameLabel:SetPoint("LEFT", header, "TOPLEFT", 10, -16)
 	nameLabel:SetWidth(LABEL_WIDTH)
 
 	local kindDropdown = ns.CreateDropdown(header, ns.SPEECH_KINDS,
@@ -486,13 +489,13 @@ function ns.BuildEditor(parent)
 	editor.nameBox = nameBox
 
 	local tagsLabel = ns.CreateLabel(header, "Tags")
-	tagsLabel:SetPoint("TOPLEFT", nameLabel, "BOTTOMLEFT", 0, -16)
+	tagsLabel:SetPoint("LEFT", header, "TOPLEFT", 10, -44)
 	tagsLabel:SetWidth(LABEL_WIDTH)
 
 	local delayLabel = ns.CreateLabel(header, "Delay")
 	editor.delayLabel = delayLabel
 	local delayBox = ns.CreateSmallEditBox(header, 40, 20)
-	delayBox:SetFontObject(GameFontHighlight)
+	Skin.SetFont(delayBox, GameFontHighlight)
 	delayBox:SetPoint("TOPRIGHT", -24, -34)
 	delayLabel:SetPoint("RIGHT", delayBox, "LEFT", -6, 0)
 	local secondsText = ns.CreateLabel(header, "s", "GameFontHighlightSmall")
@@ -549,7 +552,7 @@ function ns.BuildEditor(parent)
 	editor.tagsBox = tagsBox
 
 	local triggersLabel = ns.CreateLabel(header, "Triggers")
-	triggersLabel:SetPoint("TOPLEFT", tagsLabel, "BOTTOMLEFT", 0, -16)
+	triggersLabel:SetPoint("LEFT", header, "TOPLEFT", 10, -70)
 	triggersLabel:SetWidth(LABEL_WIDTH)
 
 	local addTriggerButton = ns.CreateButton(header, "Add Trigger", 92, 20, function(self) showAddTriggerMenu(self) end,
@@ -557,7 +560,7 @@ function ns.BuildEditor(parent)
 	addTriggerButton:SetPoint("TOPRIGHT", -10, -60)
 
 	local chipArea = CreateFrame("Frame", nil, header)
-	chipArea:SetPoint("TOPLEFT", triggersLabel, "TOPRIGHT", 4, 4)
+	chipArea:SetPoint("TOPLEFT", header, "TOPLEFT", 14 + LABEL_WIDTH, -60)
 	chipArea:SetPoint("RIGHT", addTriggerButton, "LEFT", -8, 0)
 	chipArea:SetHeight(22)
 	chipArea:SetScript("OnSizeChanged", function()
@@ -608,10 +611,10 @@ function ns.BuildEditor(parent)
 
 	header:SetHeight(116)
 
-	local scriptTab = ns.CreateButton(body, "Script", 70, 20, function() setPreviewMode(false) end)
+	local scriptTab = ns.CreateButton(body, "Script", 70, 20, function() setPreviewMode(false) end, nil, "ButtonTab")
 	scriptTab:SetPoint("TOPLEFT", header, "BOTTOMLEFT", 0, -6)
 	local previewTab = ns.CreateButton(body, "Preview", 70, 20, function() setPreviewMode(true) end,
-		"How each line will be sent. Click a line to start presenting from it.")
+		"How each line will be sent. Click a line to start presenting from it.", "ButtonTab")
 	previewTab:SetPoint("LEFT", scriptTab, "RIGHT", 4, 0)
 	editor.scriptTab, editor.previewTab = scriptTab, previewTab
 
@@ -621,7 +624,7 @@ function ns.BuildEditor(parent)
 	ns.RegisterTourTarget("editor.help", helpButton)
 	ns.RegisterTourTarget("editor.tabs", { scriptTab, previewTab })
 
-	editor.status = body:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+	editor.status = Skin.Text(body, "ARTWORK", "GameFontHighlightSmall")
 	editor.status:SetPoint("RIGHT", helpButton, "LEFT", -8, 0)
 	editor.status:SetJustifyH("RIGHT")
 
@@ -676,7 +679,7 @@ function ns.BuildEditor(parent)
 	end)
 	duplicateButton:SetPoint("RIGHT", exportButton, "LEFT", -6, 0)
 
-	local scriptHolder = ns.CreateMultiLineEditBox(body)
+	local scriptHolder = ns.CreateMultiLineEditBox(body, nil, true)
 	scriptHolder:SetPoint("TOPLEFT", scriptTab, "BOTTOMLEFT", 0, -4)
 	scriptHolder:SetPoint("BOTTOMRIGHT", footer, "TOPRIGHT", 0, 6)
 	scriptHolder.editBox:HookScript("OnTextChanged", function(self, userInput)
@@ -716,10 +719,12 @@ function ns.BuildEditor(parent)
 	meterTab:SetFrameLevel(scriptHolder.scroll:GetFrameLevel() + 5)
 	meterTab:SetPoint("BOTTOMRIGHT", scriptHolder, "BOTTOMRIGHT", -28, 5)
 	meterTab:SetHeight(18)
-	meterTab:SetBackdrop({ bgFile = "Interface/Buttons/WHITE8X8" })
-	meterTab:SetBackdropColor(0.1, 0.07, 0.04, 0.92)
+	if not Skin.Panel(meterTab, "float", true) then
+		meterTab:SetBackdrop({ bgFile = "Interface/Buttons/WHITE8X8" })
+		meterTab:SetBackdropColor(0.1, 0.07, 0.04, 0.92)
+	end
 	meterTab:Hide()
-	local meter = meterTab:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+	local meter = Skin.Text(meterTab, "ARTWORK", "GameFontHighlightSmall")
 	meter:SetPoint("RIGHT", -6, 0)
 	meter:SetWordWrap(false)
 	local rawSetText = meter.SetText
@@ -781,6 +786,7 @@ function ns.BuildEditor(parent)
 	previewScroll:SetPoint("TOPLEFT", 6, -6)
 	previewScroll:SetPoint("BOTTOMRIGHT", -26, 6)
 	ns.SetGentleScroll(previewScroll)
+	Skin.ScrollBar(previewScroll)
 	local previewChild = CreateFrame("Frame", nil, previewScroll)
 	previewChild:SetSize(100, 1)
 	previewScroll:SetScrollChild(previewChild)

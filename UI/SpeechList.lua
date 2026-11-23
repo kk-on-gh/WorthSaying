@@ -174,7 +174,8 @@ local function render(row, speech)
 	row.cells.modified:SetTextColor(0.75, 0.75, 0.75)
 
 	if speech.id == ns.selectedSpeechId then
-		row.stripe:SetColorTexture(1, 0.82, 0, 0.16)
+		local r, g, b = ns.Skin.AccentColor()
+		row.stripe:SetColorTexture(r, g, b, 0.16)
 	else
 		row.stripe:SetColorTexture(0, 0, 0, row.stripeAlpha or 0)
 	end
@@ -217,7 +218,7 @@ local function exportOne(speech)
 end
 
 local function showRowMenu(speech, rowFrame)
-	MenuUtil.CreateContextMenu(rowFrame, function(_, root)
+	ns.Skin.ContextMenu(rowFrame, function(_, root)
 		root:CreateTitle(speech.name)
 		root:CreateButton("Open in Presenter", function() ns.PresentSpeech(speech.id) end)
 		if speech.kind ~= "quip" then

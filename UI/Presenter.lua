@@ -1,4 +1,5 @@
 local ns = WorthSaying
+local Skin = ns.Skin
 
 local WIDTH, HEIGHT = 420, 214
 local MINI_WIDTH, MINI_HEIGHT = 230, 34
@@ -132,7 +133,11 @@ function onUpdate(_, elapsed)
 	if state.waiting == "key" then
 		pulse = pulse + elapsed * 4
 		local a = 0.45 + 0.45 * math.abs(math.sin(pulse))
-		frame:SetBackdropBorderColor(1, 0.6, 0.1, a)
+		if frame.outline then
+			frame.outline:SetBackdropBorderColor(1, 0.6, 0.1, a)
+		else
+			frame:SetBackdropBorderColor(1, 0.6, 0.1, a)
+		end
 	end
 	if state.playing and state.nextAt then
 		frame.tick = (frame.tick or 0) + elapsed
@@ -232,7 +237,9 @@ function ns.RefreshPresenter()
 			ns.UpdateRehearseButton(controls.rehearse)
 		end
 	end
-	if state.waiting ~= "key" then
+	if frame.outline then
+		frame.outline:SetShown(state.waiting == "key")
+	elseif state.waiting ~= "key" then
 		frame:SetBackdropBorderColor(1, 0.82, 0, 0.6)
 	end
 	frame.miniProgress:SetWidth(math.max(0.01, frame.miniTrack:GetWidth() * (total > 0 and (quip and 0 or sent / total) or 0)))
@@ -282,9 +289,9 @@ local function buildControls(parent, compact)
 	local function button(text, width, onClick, tip)
 		local btn = ns.CreateButton(parent, text, width, height, onClick, tip)
 		if compact then
-			btn:SetNormalFontObject(GameFontNormalSmall)
-			btn:SetHighlightFontObject(GameFontHighlightSmall)
-			btn:SetDisabledFontObject(GameFontDisableSmall)
+			btn:SetNormalFontObject(Skin.Font(GameFontNormalSmall))
+			btn:SetHighlightFontObject(Skin.Font(GameFontHighlightSmall))
+			btn:SetDisabledFontObject(Skin.Font(GameFontDisableSmall))
 		end
 		return btn
 	end
@@ -339,14 +346,17 @@ local function createFrame()
 	frame:SetFrameStrata("HIGH")
 	frame:SetToplevel(true)
 	frame:SetClampedToScreen(true)
-	frame:SetBackdrop({
-		bgFile = "Interface/Buttons/WHITE8X8",
-		edgeFile = "Interface/Tooltips/UI-Tooltip-Border",
-		edgeSize = 14,
-		insets = { left = 3, right = 3, top = 3, bottom = 3 },
-	})
-	frame:SetBackdropColor(0.1, 0.08, 0.06, 1)
-	frame:SetBackdropBorderColor(1, 0.82, 0, 0.6)
+	if not Skin.Panel(frame, "float") then
+		frame:SetBackdrop({
+			bgFile = "Interface/Buttons/WHITE8X8",
+			edgeFile = "Interface/Tooltips/UI-Tooltip-Border",
+			edgeSize = 14,
+			insets = { left = 3, right = 3, top = 3, bottom = 3 },
+		})
+		frame:SetBackdropColor(0.1, 0.08, 0.06, 1)
+		frame:SetBackdropBorderColor(1, 0.82, 0, 0.6)
+	end
+	frame.outline = Skin.CreateOutline(frame)
 	ns.MakePopupDraggable(frame, "presenter")
 	ns.RestorePopupPosition(frame, "presenter", "CENTER", "CENTER", 0, -180)
 
@@ -355,16 +365,22 @@ local function createFrame()
 	frame.full = full
 
 	local band = full:CreateTexture(nil, "BACKGROUND", nil, 1)
-	band:SetPoint("TOPLEFT", 4, -4)
-	band:SetPoint("TOPRIGHT", -4, -4)
-	band:SetHeight(28)
-	band:SetColorTexture(0.42, 0.3, 0.14, 0.9)
-	local grain = full:CreateTexture(nil, "BACKGROUND", nil, 2)
-	grain:SetAllPoints(band)
-	grain:SetTexture("Interface\\AchievementFrame\\UI-Achievement-Parchment-Horizontal")
-	grain:SetVertexColor(0.75, 0.6, 0.35, 0.6)
+	if Skin.Band(band) then
+		band:SetPoint("TOPLEFT", 1, -1)
+		band:SetPoint("TOPRIGHT", -1, -1)
+		band:SetHeight(33)
+	else
+		band:SetPoint("TOPLEFT", 4, -4)
+		band:SetPoint("TOPRIGHT", -4, -4)
+		band:SetHeight(28)
+		band:SetColorTexture(0.42, 0.3, 0.14, 0.9)
+		local grain = full:CreateTexture(nil, "BACKGROUND", nil, 2)
+		grain:SetAllPoints(band)
+		grain:SetTexture("Interface\\AchievementFrame\\UI-Achievement-Parchment-Horizontal")
+		grain:SetVertexColor(0.75, 0.6, 0.35, 0.6)
+	end
 
-	local close = ns.CreateButton(full, "X", 20, 20, function() frame:Hide() end)
+	local close = ns.CreateButton(full, "X", 20, 20, function() frame:Hide() end, nil, "CloseButton")
 	close:SetPoint("TOPRIGHT", -8, -8)
 	local minimize = ns.CreateButton(full, "_", 20, 20, function() setMinimized(true) end,
 		"Shrink to just the playback buttons.")
@@ -387,13 +403,13 @@ local function createFrame()
 	frame.sectionDropdown:SetPoint("TOPLEFT", 10, -38)
 	ns.AttachHookTooltip(frame.sectionDropdown, "Jump to a ## section.")
 
-	frame.counter = full:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+	frame.counter = Skin.Text(full, "ARTWORK", "GameFontHighlightSmall")
 	frame.counter:SetPoint("TOPRIGHT", -12, -42)
 
-	frame.upNextLabel = full:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
+	frame.upNextLabel = Skin.Text(full, "ARTWORK", "GameFontNormalSmall")
 	frame.upNextLabel:SetPoint("TOPLEFT", 12, -64)
 
-	frame.current = full:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+	frame.current = Skin.Text(full, "ARTWORK", "GameFontHighlight")
 	frame.current:SetPoint("TOPLEFT", frame.upNextLabel, "BOTTOMLEFT", 0, -4)
 	frame.current:SetWidth(WIDTH - 24)
 	frame.current:SetJustifyH("LEFT")
@@ -402,7 +418,7 @@ local function createFrame()
 	frame.current:SetMaxLines(3)
 	frame.current:SetHeight(44)
 
-	frame.next = full:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+	frame.next = Skin.Text(full, "ARTWORK", "GameFontHighlightSmall")
 	frame.next:SetPoint("TOPLEFT", frame.current, "BOTTOMLEFT", 0, -4)
 	frame.next:SetWidth(WIDTH - 24)
 	frame.next:SetJustifyH("LEFT")
@@ -413,11 +429,11 @@ local function createFrame()
 	frame.progressTrack:SetPoint("TOPLEFT", 12, -140)
 	frame.progressTrack:SetPoint("TOPRIGHT", -12, -140)
 	frame.progressTrack:SetHeight(3)
-	frame.progressTrack:SetColorTexture(1, 0.82, 0, 0.18)
+	Skin.Track(frame.progressTrack, 0.18)
 	frame.progress = full:CreateTexture(nil, "OVERLAY")
 	frame.progress:SetPoint("TOPLEFT", frame.progressTrack, "TOPLEFT")
 	frame.progress:SetHeight(3)
-	frame.progress:SetColorTexture(1, 0.82, 0, 0.9)
+	Skin.Accent(frame.progress, 0.9)
 
 	local row = CreateFrame("Frame", nil, full)
 	row:SetPoint("TOPLEFT", 10, -150)
@@ -451,7 +467,7 @@ local function createFrame()
 	frame.delayBox:SetScript("OnEditFocusLost", applyDelay)
 	frame.delayBox:SetScript("OnEscapePressed", frame.delayBox.ClearFocus)
 
-	frame.status = full:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+	frame.status = Skin.Text(full, "ARTWORK", "GameFontHighlightSmall")
 	frame.status:SetPoint("TOPLEFT", 12, -182)
 	frame.status:SetPoint("RIGHT", -100, 0)
 	frame.status:SetJustifyH("LEFT")
@@ -464,7 +480,7 @@ local function createFrame()
 	frame.mini = mini
 	frame.miniControls = buildControls(mini, true)
 	frame.miniControls.restart:SetPoint("LEFT", 7, 1)
-	local miniClose = ns.CreateButton(mini, "X", 18, 18, function() frame:Hide() end)
+	local miniClose = ns.CreateButton(mini, "X", 18, 18, function() frame:Hide() end, nil, "CloseButton")
 	miniClose:SetPoint("RIGHT", -7, 1)
 	local restore = ns.CreateButton(mini, "+", 18, 18, function() setMinimized(false) end, "Show the full presenter.")
 	restore:SetPoint("RIGHT", miniClose, "LEFT", -2, 0)
@@ -473,11 +489,11 @@ local function createFrame()
 	frame.miniTrack:SetPoint("BOTTOMLEFT", 6, 4)
 	frame.miniTrack:SetPoint("BOTTOMRIGHT", -6, 4)
 	frame.miniTrack:SetHeight(2)
-	frame.miniTrack:SetColorTexture(1, 0.82, 0, 0.15)
+	Skin.Track(frame.miniTrack, 0.15)
 	frame.miniProgress = mini:CreateTexture(nil, "OVERLAY")
 	frame.miniProgress:SetPoint("TOPLEFT", frame.miniTrack, "TOPLEFT")
 	frame.miniProgress:SetHeight(2)
-	frame.miniProgress:SetColorTexture(1, 0.82, 0, 0.8)
+	Skin.Accent(frame.miniProgress, 0.8)
 
 	frame:SetScript("OnShow", function() ns.RefreshPresenter() end)
 	frame:SetScript("OnHide", function()

@@ -3,6 +3,23 @@ local ns = WorthSaying
 -- mirrors CHANGELOG.md, newest first. the game can't read that file
 ns.CHANGELOG = {
 	{
+		version = "0.3", date = "2026-11-22", shipped = true,
+		sections = {
+			{ heading = "Added", items = {
+				"Themes (Options > Main Window): Dark, a flat dark look with gold accents, and EllesmereUI, which takes on your EllesmereUI look, accent color and font. Both turn checkboxes into toggles and restyle the dropdown menus. Default keeps the gold and parchment.",
+				"Font (Options > Main Window): any font the game has or your other addons share, with every theme.",
+				"The Rehearse button pulses while Rehearse is on.",
+				"The script editor shades every other line, so wrapped lines are easier to tell apart.",
+			}},
+			{ heading = "Changed", items = {
+				"Main Window settings are now at the top of the Options tab.",
+			}},
+			{ heading = "Fixed", items = {
+				"The editor's Tags, Delay and Triggers rows were a few pixels out of line.",
+			}},
+		},
+	},
+	{
 		version = "0.2", date = "2026-11-19", shipped = true,
 		sections = {
 			{ heading = "Added", items = {

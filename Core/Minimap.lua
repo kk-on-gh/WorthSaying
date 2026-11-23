@@ -39,7 +39,7 @@ end
 
 -- owned by UIParent: button bags can hide the button before a menu click lands
 local function showMenu()
-	MenuUtil.CreateContextMenu(UIParent, function(_, rootDescription)
+	ns.Skin.ContextMenu(UIParent, function(_, rootDescription)
 		rootDescription:CreateTitle("Worth Saying")
 		rootDescription:CreateButton("Open Window", function() ns.ShowMainWindow() end)
 		rootDescription:CreateButton("Presenter", function() ns.ShowPresenter() end)

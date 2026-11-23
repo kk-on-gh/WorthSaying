@@ -1,4 +1,16 @@
 local ns = WorthSaying
+local Skin = ns.Skin
+
+StaticPopupDialogs["WS_SKIN_RELOAD"] = {
+	text = "Worth Saying needs to reload your UI to change its look.",
+	button1 = "Reload Now",
+	button2 = "Later",
+	OnAccept = function() ReloadUI() end,
+	timeout = 0,
+	whileDead = true,
+	hideOnEscape = true,
+	preferredIndex = 3,
+}
 
 StaticPopupDialogs["WS_CONFIRM_RESET_UI"] = {
 	text = "Reset every Worth Saying window (position, size, scale, opacity), column layouts and the minimap button? Your UI will reload.",
@@ -67,7 +79,7 @@ end
 local function buildCheckbox(parent, x, y, text, checked, onClick, tooltip)
 	local check = ns.CreateSmallCheckbox(parent, 24, checked, onClick)
 	check:SetPoint("TOPLEFT", x, y)
-	local label = parent:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+	local label = Skin.Text(parent, "ARTWORK", "GameFontHighlightSmall")
 	label:SetPoint("LEFT", check, "RIGHT", 4, 0)
 	label:SetText(text)
 	check.label = label
@@ -78,7 +90,7 @@ local function buildCheckbox(parent, x, y, text, checked, onClick, tooltip)
 end
 
 local function buildSlider(parent, opts)
-	local label = parent:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
+	local label = Skin.Text(parent, "ARTWORK", "GameFontNormalSmall")
 	label:SetPoint("TOPLEFT", opts.x, opts.y)
 	label:SetText(opts.label)
 
@@ -93,10 +105,10 @@ local function buildSlider(parent, opts)
 	slider:SetPoint("TOPLEFT", label, "BOTTOMLEFT", 2, -12)
 
 	local suffix = opts.isPercent and "%" or (opts.suffix or "")
-	local lowText = parent:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
+	local lowText = Skin.Text(parent, "ARTWORK", "GameFontDisableSmall")
 	lowText:SetPoint("TOPLEFT", slider, "BOTTOMLEFT", 0, -2)
 	lowText:SetText(formatValue(opts.min) .. suffix)
-	local highText = parent:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
+	local highText = Skin.Text(parent, "ARTWORK", "GameFontDisableSmall")
 	highText:SetPoint("TOPRIGHT", slider, "BOTTOMRIGHT", 0, -2)
 	highText:SetText(formatValue(opts.max) .. suffix)
 
@@ -143,9 +155,10 @@ local function createSectionBox(parent, y, height, title)
 	box:SetPoint("TOPRIGHT", -12, y)
 	box:SetHeight(height)
 	ns.ApplyPanelBackdrop(box, 0.4)
-	local titleText = box:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+	local titleText = Skin.Text(box, "ARTWORK", "GameFontNormal")
 	titleText:SetPoint("TOPLEFT", 8, -6)
 	titleText:SetText(title)
+	Skin.Section(titleText)
 	box.titleText = titleText
 	ns.tourBoxes[title] = box
 	return box
@@ -432,13 +445,63 @@ local function buildTriggersBox(parent, y)
 	return y - height - 6
 end
 
+local function themeOptions()
+	local options = {
+		{ value = "default", text = "Default" },
+		{ value = "dark", text = "Dark" },
+	}
+	if Skin.IsAvailable() then
+		options[3] = { value = "ellesmere", text = "EllesmereUI" }
+	elseif ns.GetSettings().theme == "ellesmere" then
+		options[3] = { value = "ellesmere", text = "EllesmereUI (not loaded)" }
+	end
+	return options
+end
+
+local function themeTooltip()
+	local text = "How Worth Saying's windows look. Changes after a reload.\n\n"
+		.. "Default: gold and parchment.\n"
+		.. "Dark: flat and dark, with gold accents.\n"
+		.. "EllesmereUI: your EllesmereUI look, font and accent color. Needs its Blizzard Skins+ module, "
+		.. "with Worth Saying left on under Window Skins > Third-Party Addons. Without them it uses Dark."
+	if Skin.RequestedTheme() == "ellesmere" and Skin.Theme() == "dark" then
+		text = text .. "\n\n|cffff6060Using Dark right now: EllesmereUI's skinning is off, or was turned on after Worth Saying opened.|r"
+	end
+	return text
+end
+
+local function fontOptions()
+	local saved = ns.GetSettings().font
+	local options = { { value = "", text = "Theme default" } }
+	local found = saved == ""
+	for _, font in ipairs(Skin.ListFonts()) do
+		options[#options + 1] = { value = font.name, text = font.name, font = font.path }
+		found = found or font.name == saved
+	end
+	if not found then
+		options[#options + 1] = { value = saved, text = saved .. " (missing)" }
+	end
+	return options
+end
+
+local function fontTooltip()
+	local text = "The font for Worth Saying's text. Changes after a reload.\n\n"
+		.. "Lists the game's own fonts and any your other addons share (through LibSharedMedia).\n\n"
+		.. "Theme default: the game's font, or your EllesmereUI font with that theme. "
+		.. "EllesmereUI's tab labels always use its own font."
+	if Skin.FontMissing() then
+		text = text .. "\n\n|cffff6060Your font wasn't found, so the theme's own is in use. Was its addon turned off?|r"
+	end
+	return text
+end
+
 local function buildWindowBox(parent, y)
-	local height = 150
+	local height = 180
 	local box = createSectionBox(parent, y, height, "Main Window")
 	local settings = ns.GetSettings()
 
 	buildSlider(box, {
-		x = 10, y = -28, label = "Opacity", min = 0.3, max = 1.0, step = 0.05, width = 150, isPercent = true,
+		x = 10, y = -58, label = "Opacity", min = 0.3, max = 1.0, step = 0.05, width = 150, isPercent = true,
 		getValue = function() return settings.windowAlpha end,
 		setValue = function(value)
 			settings.windowAlpha = value
@@ -446,7 +509,7 @@ local function buildWindowBox(parent, y)
 		end,
 	})
 	buildSlider(box, {
-		x = 200, y = -28, label = "Scale", min = 0.6, max = 1.6, step = 0.05, width = 150, isPercent = true, commitOnRelease = true,
+		x = 200, y = -58, label = "Scale", min = 0.6, max = 1.6, step = 0.05, width = 150, isPercent = true, commitOnRelease = true,
 		getValue = function() return settings.uiScale end,
 		setValue = function(value)
 			ns.EnsureMainFrame()
@@ -455,7 +518,7 @@ local function buildWindowBox(parent, y)
 	})
 
 	local timeLabel = ns.CreateLabel(box, "Time format")
-	timeLabel:SetPoint("TOPLEFT", 10, -92)
+	timeLabel:SetPoint("TOPLEFT", 10, -122)
 	local timeDropdown = ns.CreateDropdown(box, {
 		{ value = "24h", text = "24-hour" },
 		{ value = "12h", text = "12-hour" },
@@ -464,7 +527,7 @@ local function buildWindowBox(parent, y)
 	timeDropdown:SetPoint("TOPLEFT", timeLabel, "BOTTOMLEFT", 0, -4)
 
 	local dateLabel = ns.CreateLabel(box, "Date format")
-	dateLabel:SetPoint("TOPLEFT", 200, -92)
+	dateLabel:SetPoint("TOPLEFT", 200, -122)
 	local dateDropdown = ns.CreateDropdown(box, {
 		{ value = "ymd", text = "YYYY-MM-DD" },
 		{ value = "mdy", text = "MM-DD-YYYY" },
@@ -473,12 +536,42 @@ local function buildWindowBox(parent, y)
 		function(value) settings.dateFormat = value; ns.RefreshAll() end, 150, 20)
 	dateDropdown:SetPoint("TOPLEFT", dateLabel, "BOTTOMLEFT", 0, -4)
 
-	buildCheckbox(box, 390, -30, "Show minimap icon", not settings.minimapIcon.hide, function(checked)
+	buildCheckbox(box, 390, -60, "Show minimap icon", not settings.minimapIcon.hide, function(checked)
 		ns.SetMinimapIconShown(checked)
 	end)
-	buildCheckbox(box, 390, -54, "Show patch notes after updates", settings.showPatchNotesOnUpdate, function(checked)
+	buildCheckbox(box, 390, -84, "Show patch notes after updates", settings.showPatchNotesOnUpdate, function(checked)
 		settings.showPatchNotesOnUpdate = checked
 	end)
+	local themeLabel = ns.CreateLabel(box, "Theme", "GameFontHighlightSmall")
+	themeLabel:SetPoint("TOPLEFT", 12, -34)
+	local themeDropdown = ns.CreateDropdown(box, themeOptions,
+		function(value) return settings.theme == value end,
+		function(value)
+			settings.theme = value
+			if value ~= Skin.RequestedTheme() or settings.font ~= Skin.RequestedFont() then
+				StaticPopup_Show("WS_SKIN_RELOAD")
+			else
+				StaticPopup_Hide("WS_SKIN_RELOAD")
+			end
+		end, 150, 20)
+	themeDropdown:SetPoint("LEFT", themeLabel, "RIGHT", 8, 0)
+	ns.AttachHookTooltip(themeDropdown, themeTooltip)
+
+	local fontLabel = ns.CreateLabel(box, "Font", "GameFontHighlightSmall")
+	fontLabel:SetPoint("LEFT", themeDropdown, "RIGHT", 24, 0)
+	local fontDropdown = ns.CreateDropdown(box, fontOptions,
+		function(value) return settings.font == value end,
+		function(value)
+			settings.font = value
+			if value ~= Skin.RequestedFont() or settings.theme ~= Skin.RequestedTheme() then
+				StaticPopup_Show("WS_SKIN_RELOAD")
+			else
+				StaticPopup_Hide("WS_SKIN_RELOAD")
+			end
+		end, 180, 20, 320)
+	fontDropdown:SetPoint("LEFT", fontLabel, "RIGHT", 8, 0)
+	ns.AttachHookTooltip(fontDropdown, fontTooltip)
+	ns.RegisterTourTarget("options.look", { themeLabel, fontDropdown })
 	return y - height - 6
 end
 
@@ -503,6 +596,7 @@ end
 function ns.BuildOptionsPanel(parent)
 	local scroll = CreateFrame("ScrollFrame", nil, parent, "UIPanelScrollFrameTemplate")
 	ns.SetGentleScroll(scroll)
+	Skin.ScrollBar(scroll)
 	scroll:SetPoint("TOPLEFT", 0, -4)
 	scroll:SetPoint("BOTTOMRIGHT", -34, 0)
 	local child = CreateFrame("Frame", nil, scroll)
@@ -511,11 +605,11 @@ function ns.BuildOptionsPanel(parent)
 	child:SetWidth(math.max(600, parent:GetWidth() - 34))
 
 	local y = -4
+	y = buildWindowBox(child, y)
 	y = buildKeybindBox(child, y)
 	y = buildPlaybackBox(child, y)
 	y = buildPresenterBox(child, y)
 	y = buildTriggersBox(child, y)
-	y = buildWindowBox(child, y)
 	y = buildDangerBox(child, y)
 	child:SetHeight(-y + 10)
 

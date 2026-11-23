@@ -29,6 +29,8 @@ ns.Defaults = {
 		timeFormat = "24h",
 		dateFormat = "ymd",
 		showPatchNotesOnUpdate = true,
+		theme = "default",
+		font = "",
 		minimapIcon = { hide = false, angle = 200 },
 		listSplit = 0.46,
 		playback = {
@@ -234,6 +236,9 @@ function ns.ColorText(text, r, g, b)
 end
 
 function ns.ApplyPanelBackdrop(frame, alpha)
+	if ns.Skin.Panel(frame, (alpha or 0.7) > 0.8 and "field" or "section") then
+		return
+	end
 	frame:SetBackdrop({
 		bgFile = "Interface/Tooltips/UI-Tooltip-Background",
 		edgeFile = "Interface/Tooltips/UI-Tooltip-Border",

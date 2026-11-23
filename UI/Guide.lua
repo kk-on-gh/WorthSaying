@@ -73,6 +73,7 @@ local SECTIONS = {
 function ns.BuildGuidePanel(parent)
 	local scroll = CreateFrame("ScrollFrame", nil, parent, "UIPanelScrollFrameTemplate")
 	ns.SetGentleScroll(scroll)
+	ns.Skin.ScrollBar(scroll)
 	scroll:SetPoint("TOPLEFT", 16, -8)
 	scroll:SetPoint("BOTTOMRIGHT", -34, 4)
 	local child = CreateFrame("Frame", nil, scroll)
@@ -83,12 +84,12 @@ function ns.BuildGuidePanel(parent)
 	local function getString(i, template)
 		local fs = pool[i]
 		if not fs then
-			fs = child:CreateFontString(nil, "ARTWORK", template)
+			fs = ns.Skin.Text(child, "ARTWORK", template)
 			fs:SetJustifyH("LEFT")
 			fs:SetWordWrap(true)
 			pool[i] = fs
 		end
-		fs:SetFontObject(template)
+		ns.Skin.SetFont(fs, template)
 		fs:ClearAllPoints()
 		fs:Show()
 		return fs
@@ -102,7 +103,11 @@ function ns.BuildGuidePanel(parent)
 			local heading = getString(n, "GameFontNormal")
 			heading:SetPoint("TOPLEFT", 0, y)
 			heading:SetWidth(width)
-			heading:SetText(GOLD .. section.heading .. R)
+			if ns.Skin.Heading(heading, ns.Skin.AccentColor()) then
+				heading:SetText(section.heading)
+			else
+				heading:SetText(GOLD .. section.heading .. R)
+			end
 			y = y - 20
 			for _, line in ipairs(section.lines) do
 				n = n + 1

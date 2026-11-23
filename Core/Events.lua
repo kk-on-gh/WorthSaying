@@ -7,6 +7,7 @@ frame:RegisterEvent("PLAYER_LOGIN")
 frame:SetScript("OnEvent", function(_, event, loadedAddon)
 	if event == "ADDON_LOADED" and loadedAddon == ns.name then
 		ns.InitDatabase()
+		ns.Skin.Request(ns.GetSettings().theme, ns.GetSettings().font)
 		return
 	end
 

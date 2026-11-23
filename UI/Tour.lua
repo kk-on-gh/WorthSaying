@@ -70,7 +70,7 @@ ns.TOURS = {
 		{
 			tab = "speeches", target = "main.rehearse", side = "above", hook = "presenter",
 			title = "Rehearse",
-			text = "With Rehearse on, lines print only to your own chat window, so you can practice a speech without anyone seeing it.\n\nIt's here and on the presenter.",
+			text = "With Rehearse on, lines print only to your own chat window, so you can practice a speech without anyone seeing it.\n\nIt's here and on the presenter, and pulses while it's on.",
 		},
 		{
 			tab = "speeches", target = "speeches.bottom", side = "above",
@@ -80,7 +80,7 @@ ns.TOURS = {
 		{
 			tab = "options", target = "tab.options", side = "below",
 			title = "Options",
-			text = "Keybinds for Send, Play and the windows, playback timing, sounds, the presenter's look, and how triggers behave. Hover anything for an explanation.",
+			text = "A theme and font, keybinds for Send, Play and the windows, playback timing, sounds, the presenter's look, and how triggers behave. Hover anything for an explanation.",
 		},
 		{
 			tab = "guide", target = "tab.guide", side = "below",
@@ -100,6 +100,32 @@ ns.TOURS = {
 	},
 	-- "what's new" tours, one per version, started from that version's patch notes.
 	-- keep only the newest three, the About tab ignores older ones anyway
+	["v0.3"] = {
+		{
+			title = "What's new in 0.3",
+			text = "A quick look at what's new.",
+		},
+		{
+			box = "Main Window", side = "right", marks = { "options.look" },
+			title = "Themes and fonts",
+			text = "Pick a theme: Default, Dark, or EllesmereUI if you use it. Dark and EllesmereUI turn checkboxes into toggles and restyle the dropdown menus.\n\nNext to it, pick any font the game has or your other addons share. Both change after a reload.\n\nThe Main Window settings moved up here too.",
+		},
+		{
+			tab = "speeches", target = "main.rehearse", side = "above", hook = "presenter",
+			title = "Rehearse",
+			text = "The Rehearse button pulses while it's on, so it's hard to forget. It's on for this tour, so you can see it.",
+		},
+		{
+			tab = "speeches", target = "editor.script", side = "left", hook = "sample",
+			title = "Script lines",
+			text = "Every other line of the script is shaded, so a long line that wraps reads as one.",
+		},
+		{
+			tab = "about",
+			title = "That's all for 0.3",
+			text = "Thanks for using Worth Saying!",
+		},
+	},
 	["v0.2"] = {
 		{
 			title = "What's new in 0.2",
@@ -263,12 +289,13 @@ local function newOutline()
 end
 
 local function newArrow(width, height, glowWidth, glowHeight, alpha, glowAlpha)
-	local tex = callout:CreateTexture(nil, "ARTWORK")
+	local host = callout.artHost
+	local tex = host:CreateTexture(nil, "ARTWORK")
 	tex:SetTexture(ARROW_FILE)
 	tex:SetTexCoord(0.78515625, 0.99218750, 0.54687500, 0.58789063)
 	tex:SetSize(width, height)
 	tex:SetAlpha(alpha)
-	local shine = callout:CreateTexture(nil, "BORDER")
+	local shine = host:CreateTexture(nil, "BORDER")
 	shine:SetTexture(ARROW_FILE)
 	shine:SetTexCoord(0.40625000, 0.66015625, 0.77343750, 0.82812500)
 	shine:SetSize(glowWidth, glowHeight)
@@ -286,13 +313,16 @@ local function buildCallout()
 	callout:EnableMouse(true)
 	callout:SetWidth(BOX_WIDTH)
 	tinsert(UISpecialFrames, "WSTourCallout")
+	ns.Skin.Panel(callout, "float")
+	callout.artHost = ns.Skin.CreateArtHost(callout)
 
-	callout.title = callout:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+	callout.title = ns.Skin.Text(callout, "OVERLAY", "GameFontNormalLarge")
 	callout.title:SetPoint("TOPLEFT", PAD, -PAD)
 	callout.title:SetPoint("RIGHT", -28, 0)
 	callout.title:SetJustifyH("LEFT")
+	ns.Skin.Heading(callout.title)
 
-	callout.body = callout:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	callout.body = ns.Skin.Text(callout, "OVERLAY", "GameFontHighlight")
 	callout.body:SetPoint("TOPLEFT", callout.title, "BOTTOMLEFT", 0, -8)
 	callout.body:SetWidth(BOX_WIDTH - 2 * PAD)
 	callout.body:SetJustifyH("LEFT")
@@ -305,6 +335,7 @@ local function buildCallout()
 		ns.EndTour()
 		callout:Hide()
 	end)
+	ns.Skin.CloseButton(close)
 
 	callout.next = CreateFrame("Button", nil, callout, "UIPanelButtonTemplate")
 	callout.next:SetSize(80, 22)
@@ -318,6 +349,7 @@ local function buildCallout()
 			ns.EndTour()
 		end
 	end)
+	ns.Skin.Button(callout.next)
 
 	callout.back = CreateFrame("Button", nil, callout, "UIPanelButtonTemplate")
 	callout.back:SetSize(80, 22)
@@ -330,8 +362,9 @@ local function buildCallout()
 		end
 		ns.ShowTourStep(stepIndex - 1)
 	end)
+	ns.Skin.Button(callout.back)
 
-	callout.counter = callout:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+	callout.counter = ns.Skin.Text(callout, "OVERLAY", "GameFontDisableSmall")
 	callout.counter:SetPoint("LEFT", callout, "BOTTOMLEFT", PAD, PAD + 9)
 
 	callout:SetScript("OnHide", function()

@@ -1,4 +1,5 @@
 local ns = WorthSaying
+local Skin = ns.Skin
 
 local expanded = { [1] = true }
 local scroll, scrollChild
@@ -36,12 +37,12 @@ local function getString(template)
 	used = used + 1
 	local fs = pool[used]
 	if not fs then
-		fs = scrollChild:CreateFontString(nil, "ARTWORK", template)
+		fs = Skin.Text(scrollChild, "ARTWORK", template)
 		fs:SetJustifyH("LEFT")
 		fs:SetWordWrap(true)
 		pool[used] = fs
 	end
-	fs:SetFontObject(template)
+	Skin.SetFont(fs, template)
 	fs:SetTextColor(1, 1, 1)
 	fs:ClearAllPoints()
 	fs:Show()
@@ -88,6 +89,7 @@ local function getTourButton(version)
 		button:SetSize(170, 20)
 		button:SetText("Tour what's new in " .. version)
 		button:SetScript("OnClick", function() ns.StartTour("v" .. version) end)
+		Skin.Button(button)
 		button:HookScript("OnEnter", function(self)
 			glowing[version] = nil
 			if self.glow then
@@ -117,11 +119,12 @@ local function getHeader()
 	if not header then
 		header = CreateFrame("Button", nil, scrollChild)
 		header:SetHeight(20)
-		header.text = header:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+		header.text = Skin.Text(header, "ARTWORK", "GameFontNormal")
 		header.text:SetPoint("LEFT", 4, 0)
+		Skin.Heading(header.text)
 		local hl = header:CreateTexture(nil, "HIGHLIGHT")
 		hl:SetAllPoints()
-		hl:SetColorTexture(1, 0.82, 0, 0.08)
+		Skin.Hover(hl, 0.08)
 		headerPool[headersUsed] = header
 	end
 	header:ClearAllPoints()
@@ -167,7 +170,7 @@ function layout()
 				local label = getString("GameFontNormalSmall")
 				label:SetPoint("TOPLEFT", 16, y)
 				label:SetWidth(width - 32)
-				label:SetTextColor(1, 0.82, 0)
+				label:SetTextColor(Skin.AccentColor())
 				label:SetText(section.heading)
 				y = y - 16
 				for _, item in ipairs(section.items) do
@@ -206,21 +209,22 @@ function ns.BuildAboutPanel(parent)
 	logo:SetPoint("TOPLEFT", 0, 0)
 	logo:SetTexture("Interface\\AddOns\\WorthSaying\\Media\\PortraitIcon.png")
 
-	local title = header:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
+	local title = Skin.Text(header, "ARTWORK", "GameFontNormalLarge")
 	title:SetPoint("TOPLEFT", logo, "TOPRIGHT", 14, -2)
 	title:SetText("Worth Saying")
+	Skin.Heading(title)
 	local titleFont, titleSize, titleFlags = title:GetFont()
 	titleSize = titleSize + 2
 	title:SetFont(titleFont, titleSize, titleFlags)
 
-	local version = header:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+	local version = Skin.Text(header, "ARTWORK", "GameFontHighlightSmall")
 	version:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -6)
 	version:SetText("Version " .. tostring(ns.GetAddonVersion()))
 
 	local patchCheck = ns.CreateSmallCheckbox(header, 24, ns.GetSettings().showPatchNotesOnUpdate,
 		function(checked) ns.GetSettings().showPatchNotesOnUpdate = checked end)
 	patchCheck:SetPoint("TOPLEFT", version, "BOTTOMLEFT", -4, -4)
-	local patchCheckLabel = header:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+	local patchCheckLabel = Skin.Text(header, "ARTWORK", "GameFontHighlightSmall")
 	patchCheckLabel:SetPoint("LEFT", patchCheck, "RIGHT", 2, 0)
 	patchCheckLabel:SetText("Show patch notes for new versions")
 	ns.AttachTooltip(patchCheck, "Opens this tab once after Worth Saying updates to a new version.")
@@ -231,7 +235,7 @@ function ns.BuildAboutPanel(parent)
 	tourButton:SetPoint("LEFT", patchCheckLabel, "RIGHT", 16, 0)
 	ns.RegisterTourTarget("about.tours", tourButton)
 
-	local welcome = header:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+	local welcome = Skin.Text(header, "ARTWORK", "GameFontHighlight")
 	welcome:SetPoint("TOPLEFT", logo, "BOTTOMLEFT", 0, -12)
 	welcome:SetPoint("RIGHT", header, "RIGHT", 0, 0)
 	welcome:SetJustifyH("LEFT")
@@ -241,14 +245,15 @@ function ns.BuildAboutPanel(parent)
 		.. "New here? Take the Tour for a quick look around. The Guide tab covers everything a script can do, and the Sample Tour speech shows most of it in action.\n"
 		.. "Please feel very free to share any feedback, bug reports, feature requests, etc with me, I'd love to hear from you.")
 
-	local patchNotesLabel = header:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
+	local patchNotesLabel = Skin.Text(header, "ARTWORK", "GameFontNormalSmall")
 	patchNotesLabel:SetPoint("TOPLEFT", welcome, "BOTTOMLEFT", 0, -14)
 	patchNotesLabel:SetText("Patch Notes")
 	local font, _, flags = patchNotesLabel:GetFont()
 	patchNotesLabel:SetFont(font, titleSize - 2, flags)
+	Skin.Heading(patchNotesLabel)
 
 	-- values are read-only edit boxes so they can be selected and copied
-	local contactHeading = header:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
+	local contactHeading = Skin.Text(header, "ARTWORK", "GameFontNormalSmall")
 	contactHeading:SetPoint("TOPRIGHT", 0, -2)
 	contactHeading:SetJustifyH("RIGHT")
 	contactHeading:SetText("For feedback, bug reports, feature requests, etc:")
@@ -256,13 +261,13 @@ function ns.BuildAboutPanel(parent)
 	local lineHeight = math.ceil(contactHeading:GetStringHeight())
 
 	local function addContactLine(anchor, label, value)
-		local measure = header:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+		local measure = Skin.Text(header, "ARTWORK", "GameFontHighlightSmall")
 		measure:SetText(value)
 		local width = math.ceil(measure:GetStringWidth()) + 4
 		measure:Hide()
 
 		local valueBox = CreateFrame("EditBox", nil, header)
-		valueBox:SetFontObject("GameFontHighlightSmall")
+		Skin.SetFont(valueBox, "GameFontHighlightSmall")
 		valueBox:SetAutoFocus(false)
 		valueBox:SetJustifyH("RIGHT")
 		valueBox:SetSize(width, lineHeight)
@@ -281,7 +286,7 @@ function ns.BuildAboutPanel(parent)
 		valueBox:SetScript("OnEnterPressed", function(self) self:ClearFocus() end)
 		ns.AttachTooltip(valueBox, "Click, then Ctrl+C to copy.")
 
-		local labelText = header:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
+		local labelText = Skin.Text(header, "ARTWORK", "GameFontNormalSmall")
 		labelText:SetPoint("RIGHT", valueBox, "LEFT", -4, 0)
 		labelText:SetText(label)
 		return valueBox
@@ -293,6 +298,7 @@ function ns.BuildAboutPanel(parent)
 
 	scroll = CreateFrame("ScrollFrame", nil, parent, "UIPanelScrollFrameTemplate")
 	ns.SetGentleScroll(scroll)
+	Skin.ScrollBar(scroll)
 	scroll:SetPoint("TOPLEFT", patchNotesLabel, "BOTTOMLEFT", 0, -6)
 	scroll:SetPoint("BOTTOMRIGHT", -(PAD + 22), PAD)
 
